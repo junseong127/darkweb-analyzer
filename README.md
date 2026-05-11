@@ -49,43 +49,86 @@ web/app.py  →  agent.py
 
 ## 설치 및 실행
 
-### 1. 의존 패키지 설치
+### 구성 방식
+
+두 가지 방식으로 운영할 수 있습니다.
+
+```
+[로컬 단독]                        [분리 운영]
+로컬 Mac                           로컬 Mac              Ubuntu 서버
+web/app.py (8080)       vs         web/app.py (8080)  →  server/app.py (5001)
+server/app.py (5001)               agent.py               Tor 프록시
+Tor 프록시
+```
+
+> 우분투 서버를 별도로 운영하는 경우, `server/config.py`의 서버 주소를 우분투 IP로 변경하세요.
+
+---
+
+### 로컬 단독 실행
+
+**1. 의존 패키지 설치**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Tor 실행 (macOS)
+**2. Tor 실행**
 
 ```bash
+# macOS
 brew install tor && tor
+
+# Ubuntu
+sudo apt install tor && sudo service tor start
 ```
 
-### 3. CoDA 분류기 학습 (최초 1회)
+**3. CoDA 분류기 학습 (최초 1회, 약 20분 소요)**
 
 ```bash
 python3 analyzers/train_coda_classifier.py
 ```
 
-학습 데이터(`processed_coda_data_final.csv`)가 필요합니다. S2W에서 허가 후 수령한 데이터입니다.
+> 학습 데이터(`processed_coda_data_final.csv`)는 S2W에서 허가 후 수령한 CoDA 데이터셋입니다.  
+> 학습 완료 후 `data/coda_classifier.pkl`이 생성됩니다.
 
-### 4. 서버 실행
+**4. 서버 실행**
 
 ```bash
-# 분석 서버 (포트 5001)
+# 터미널 1 - 분석 서버
 python3 server/app.py
 
-# 웹 UI (포트 8080)
+# 터미널 2 - 웹 UI
 python3 web/app.py
 ```
 
-### 5. 브라우저 접속
+**5. 브라우저 접속**
 
 ```
 http://localhost:8080
 ```
 
-도메인 입력 후 분석 시작.
+---
+
+### 우분투 서버 분리 운영
+
+**Ubuntu 서버에서:**
+
+```bash
+pip install -r server/requirements.txt
+sudo apt install tor && sudo service tor start
+python3 server/app.py  # 포트 5001
+```
+
+**로컬 Mac에서:**
+
+`server/config.py`의 서버 URL을 우분투 IP로 수정 후:
+
+```bash
+pip install -r requirements.txt
+python3 analyzers/train_coda_classifier.py  # 최초 1회
+python3 web/app.py  # 포트 8080
+```
 
 ---
 
