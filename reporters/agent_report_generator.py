@@ -236,12 +236,18 @@ class AgentReportGenerator:
 
             for bar, val in zip(bars, values):
                 ax.text(bar.get_width() + 0.8, bar.get_y() + bar.get_height() / 2,
-                        f'{val:.1f}%', va='center', ha='left', color='#f9fafb', fontsize=9)
+                        f'{val:.1f}%', va='center', ha='left', color='#f9fafb',
+                        fontsize=9, fontweight='bold')
 
             ax.set_xlim(0, 115)
-            ax.set_xlabel('%', color='#9ca3af', fontsize=10)
+            ax.set_xlabel('%', color='#9ca3af', fontsize=10, fontweight='bold')
             ax.set_title(title, color='#f9fafb', fontsize=12, fontweight='bold', pad=12)
             ax.tick_params(colors='#9ca3af')
+            for label in ax.get_yticklabels():
+                label.set_fontweight('bold')
+                label.set_color('#f9fafb')
+            for label in ax.get_xticklabels():
+                label.set_fontweight('bold')
             for spine in ('top', 'right'):
                 ax.spines[spine].set_visible(False)
             ax.spines['bottom'].set_color('#374151')
