@@ -1,273 +1,250 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Darkweb Crawler - 분석 결과</title>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #070816; --line: rgba(255, 255, 255, 0.11); --text: #f9fafb;
+            --sub: #9ca3af; --muted: #667085; --primary: #6366f1;
+            --primary-hover: #4f46e5; --purple: #8b5cf6; --pink: #ec4899;
+            --cyan: #38bdf8; --danger: #ef4444; --success: #22c55e;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-            padding: 20px;
+            font-family: "Pretendard", sans-serif;
+            background:
+                radial-gradient(circle at 18% 8%, rgba(139, 92, 246, 0.3), transparent 32%),
+                radial-gradient(circle at 88% 20%, rgba(236, 72, 153, 0.2), transparent 30%),
+                radial-gradient(circle at 70% 92%, rgba(56, 189, 248, 0.16), transparent 32%),
+                linear-gradient(135deg, #070816 0%, #0b1020 55%, #090916 100%);
+            background-size: 120% 120%;
+            color: var(--text);
+            min-height: 100vh;
+            padding: 32px;
+            overflow-x: hidden;
+            animation: bgMove 12s ease-in-out infinite alternate;
         }
-        
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+            background-size: 46px 46px;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.82), transparent 82%);
+            pointer-events: none;
+            z-index: 0;
+            animation: gridMove 18s linear infinite;
+        }
+
+        .page {
+            position: relative; z-index: 1; width: 100%;
+            max-width: 1280px; margin: 0 auto; animation: pageEnter 0.7s ease both;
+        }
+
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(180deg, rgba(17, 24, 39, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid var(--line); border-radius: 18px; padding: 48px;
+            box-shadow: 0 30px 100px rgba(0, 0, 0, 0.56), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(18px); margin-bottom: 30px; animation: cardEnter 0.8s ease both;
         }
-        
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
+
+        .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 42px; }
+        .logo-wrap { display: flex; align-items: center; gap: 14px; }
+
+        .logo {
+            width: 46px; height: 46px; border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            position: relative; animation: logoPulse 3s ease-in-out infinite;
         }
-        
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
+
+        .logo::after { content: ""; position: absolute; inset: 11px; border: 2px solid white; border-radius: 4px; }
+
+        .brand-title { font-weight: 700; color: var(--text); }
+        .system-label { font-size: 12px; font-weight: 700; letter-spacing: 0.18em; color: #6b7280; }
+
+        .header h1 { font-size: 42px; font-weight: 800; letter-spacing: -1.4px; margin-bottom: 14px; word-break: break-all; }
+        .header p { color: var(--sub); font-size: 16px; line-height: 1.7; }
+        .domain-text { color: #c7d2fe; }
+
+        .button-group { display: flex; gap: 14px; margin-top: 30px; flex-wrap: wrap; }
+
         button, a.button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s;
+            height: 56px; padding: 0 24px; border: none; border-radius: 8px;
+            font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+            text-decoration: none; display: inline-flex; align-items: center;
+            justify-content: center; transition: 0.22s ease;
         }
-        
-        .btn-back {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-        
-        .btn-back:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        .btn-download {
-            background: white;
-            color: #667eea;
-            border: none;
-        }
-        
-        .btn-download:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .content {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .report-container {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            min-height: 600px;
-        }
-        
-        .report-iframe {
-            width: 100%;
-            height: 1000px;
-            border: none;
-        }
-        
+
+        .btn-back { background: transparent; color: #d1d5db; border: 1px solid var(--line); }
+        .btn-back:hover { background: rgba(255,255,255,0.04); transform: translateY(-2px); }
+
+        .btn-download { background: var(--primary); color: white; }
+        .btn-download:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(99, 102, 241, 0.32); }
+
+        .content { animation: fadeUp 0.7s ease both; animation-delay: 0.15s; }
+
         .loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 600px;
-            background: white;
-            border-radius: 10px;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; height: 640px;
+            background: linear-gradient(180deg, rgba(17, 24, 39, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid var(--line); border-radius: 18px;
+            box-shadow: 0 30px 100px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(18px);
         }
-        
+
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            width: 46px; height: 46px;
+            border: 3px solid rgba(255,255,255,0.08);
+            border-top-color: var(--primary); border-radius: 50%;
+            margin-bottom: 16px; animation: spin 0.8s linear infinite;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .loading p { color: #cbd5e1; font-size: 15px; }
+
+        .report-container {
+            background: linear-gradient(180deg, rgba(17, 24, 39, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid var(--line); border-radius: 18px;
+            box-shadow: 0 30px 100px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(18px); overflow: hidden; min-height: 720px;
         }
-        
+
+        .report-iframe { width: 100%; height: 1000px; border: none; background: transparent; display: block; }
+
         .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px solid #f5c6cb;
-            margin-bottom: 20px;
+            display: none; background: rgba(239, 68, 68, 0.1); color: #fca5a5;
+            padding: 20px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);
+            font-size: 15px; font-weight: 600; animation: fadeUp 0.4s ease both;
         }
-        
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px solid #c3e6cb;
-            margin-bottom: 20px;
-        }
-        
+
+        @keyframes pageEnter { from { opacity: 0; transform: translateY(18px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes cardEnter  { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp     { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes bgMove     { from { background-position: 0% 0%; } to { background-position: 20px 30px; } }
+        @keyframes gridMove   { from { background-position: 0 0; } to { background-position: 46px 46px; } }
+        @keyframes logoPulse  { 0%, 100% { box-shadow: 0 0 0 rgba(99, 102, 241, 0); } 50% { box-shadow: 0 0 28px rgba(99, 102, 241, 0.45); } }
+        @keyframes spin       { to { transform: rotate(360deg); } }
+
         @media (max-width: 768px) {
-            .header {
-                padding: 20px;
-            }
-            
-            .header h1 {
-                font-size: 20px;
-            }
-            
-            .button-group {
-                flex-direction: column;
-            }
-            
-            button, a.button {
-                width: 100%;
-                text-align: center;
-            }
-            
-            .report-iframe {
-                height: 600px;
-            }
+            body { padding: 18px; }
+            .header { padding: 34px 24px; }
+            .top-bar { margin-bottom: 34px; }
+            .header h1 { font-size: 30px; letter-spacing: -1px; }
+            .button-group { flex-direction: column; }
+            button, a.button { width: 100%; height: 56px; }
+            .loading { height: 520px; }
+            .report-iframe { height: 650px; }
         }
     </style>
 </head>
+
 <body>
-    <div class="header">
-        <h1>📊 분석 결과: <span id="domainName"></span></h1>
-        <p id="domainInfo" style="display: none;"></p>
-        <div class="button-group">
-            <a href="/" class="button btn-back">← 돌아가기</a>
-            <button class="btn-download" id="downloadBtn" style="display: none;">
-                ⬇️ 보고서 다운로드
-            </button>
+    <div class="page">
+        <div class="header">
+            <div class="top-bar">
+                <div class="logo-wrap">
+                    <div class="logo"></div>
+                    <div>
+                        <div class="brand-title">Darkweb Crawler</div>
+                        <div class="system-label">SECURITY ANALYSIS SYSTEM</div>
+                    </div>
+                </div>
+            </div>
+
+            <h1>분석 결과: <span id="domainName" class="domain-text"></span></h1>
+            <p id="domainInfo" style="display: none;"></p>
+
+            <div class="button-group">
+                <a href="/" class="button btn-back">← 돌아가기</a>
+                <button class="btn-download" id="downloadBtn" style="display: none;">보고서 다운로드</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="loadingContainer" class="loading" style="display: flex;">
+                <div class="spinner"></div>
+                <p>보고서를 로드 중입니다...</p>
+            </div>
+
+            <div id="errorContainer" class="error-message" style="display: none;"></div>
+
+            <div class="report-container" id="reportContainer" style="display: none;">
+                <iframe
+                    id="reportIframe"
+                    class="report-iframe"
+                    title="분석 보고서"
+                    sandbox="allow-same-origin allow-scripts"
+                ></iframe>
+            </div>
         </div>
     </div>
-    
-    <div class="content">
-        <div id="loadingContainer" class="loading" style="display: flex;">
-            <div class="spinner"></div>
-            <p>보고서를 로드 중입니다...</p>
-        </div>
-        
-        <div id="errorContainer" class="error-message" style="display: none;"></div>
-        
-        <div class="report-container" id="reportContainer" style="display: none;">
-            <iframe 
-                id="reportIframe" 
-                class="report-iframe" 
-                title="분석 보고서"
-                sandbox="allow-same-origin allow-styles allow-scripts"
-            ></iframe>
-        </div>
-    </div>
-    
+
     <script>
-        // URL에서 도메인 파라미터 추출
         function getDomainFromURL() {
             const params = new URLSearchParams(window.location.search);
-            return params.get('domain');
+            return params.get("domain");
         }
-        
-        // 보고서 로드
+
         function loadReport() {
             const domain = getDomainFromURL();
-            
-            if (!domain) {
-                showError('도메인 파라미터가 없습니다');
-                return;
-            }
-            
-            document.getElementById('domainName').textContent = domain;
-            
-            // API에서 보고서 조회
+            if (!domain) { showError("도메인 파라미터가 없습니다."); return; }
+
+            document.getElementById("domainName").textContent = domain;
+
             fetch(`/api/report/${encodeURIComponent(domain)}`)
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     return response.text();
                 })
                 .then(html => {
-                    document.getElementById('loadingContainer').style.display = 'none';
-                    document.getElementById('reportContainer').style.display = 'block';
-                    
-                    // iframe에 콘텐츠 작성
-                    const iframe = document.getElementById('reportIframe');
+                    document.getElementById("loadingContainer").style.display = "none";
+                    document.getElementById("reportContainer").style.display = "block";
+
+                    const iframe = document.getElementById("reportIframe");
                     iframe.contentDocument.open();
                     iframe.contentDocument.write(html);
                     iframe.contentDocument.close();
-                    
-                    // 다운로드 버튼 표시
-                    document.getElementById('downloadBtn').style.display = 'inline-block';
+
+                    document.getElementById("downloadBtn").style.display = "inline-flex";
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('loadingContainer').style.display = 'none';
+                    document.getElementById("loadingContainer").style.display = "none";
                     showError(`보고서를 불러올 수 없습니다: ${error.message}`);
                 });
         }
-        
-        // 에러 메시지 표시
+
         function showError(message) {
-            const errorContainer = document.getElementById('errorContainer');
-            errorContainer.textContent = `❌ ${message}`;
-            errorContainer.style.display = 'block';
+            const el = document.getElementById("errorContainer");
+            el.textContent = `❌ ${message}`;
+            el.style.display = "block";
         }
-        
-        // 다운로드 버튼 클릭
-        document.getElementById('downloadBtn').addEventListener('click', () => {
+
+        document.getElementById("downloadBtn").addEventListener("click", () => {
             const domain = getDomainFromURL();
-            const iframe = document.getElementById('reportIframe');
+            const iframe = document.getElementById("reportIframe");
             const html = iframe.contentDocument.documentElement.outerHTML;
-            
-            // Blob 생성
-            const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
-            
-            // 다운로드 링크 생성
-            const link = document.createElement('a');
+            const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
+            const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `${domain}_analysis_report.html`);
-            link.style.visibility = 'hidden';
-            
+            link.setAttribute("href", url);
+            link.setAttribute("download", `${domain}_analysis_report.html`);
+            link.style.visibility = "hidden";
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         });
-        
-        // 페이지 로드 시
-        document.addEventListener('DOMContentLoaded', loadReport);
+
+        document.addEventListener("DOMContentLoaded", loadReport);
     </script>
 </body>
 </html>

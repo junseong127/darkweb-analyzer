@@ -1,386 +1,557 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Darkweb Crawler - 도메인 분석</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Darkweb Crawler</title>
+
     <style>
+        @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
+        :root {
+            --bg: #070816;
+            --card: #111827;
+            --card-2: #0f172a;
+            --line: rgba(255, 255, 255, 0.11);
+            --text: #f9fafb;
+            --sub: #9ca3af;
+            --muted: #667085;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --purple: #8b5cf6;
+            --pink: #ec4899;
+            --cyan: #38bdf8;
+            --danger: #ef4444;
+            --success: #22c55e;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: "Pretendard", sans-serif;
+            background:
+                radial-gradient(circle at 18% 8%, rgba(139, 92, 246, 0.3), transparent 32%),
+                radial-gradient(circle at 88% 20%, rgba(236, 72, 153, 0.2), transparent 30%),
+                radial-gradient(circle at 70% 92%, rgba(56, 189, 248, 0.16), transparent 32%),
+                linear-gradient(135deg, #070816 0%, #0b1020 55%, #090916 100%);
+            background-size: 120% 120%;
+            color: var(--text);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 32px;
+            overflow-x: hidden;
+            animation: bgMove 12s ease-in-out infinite alternate;
         }
-        
-        .container {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 40px;
-            max-width: 600px;
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+            background-size: 46px 46px;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.82), transparent 82%);
+            pointer-events: none;
+            z-index: 0;
+            animation: gridMove 18s linear infinite;
+        }
+
+        .wrapper {
+            position: relative;
+            z-index: 1;
             width: 100%;
+            max-width: 1040px;
+            animation: pageEnter 0.7s ease both;
         }
-        
+
+        .container {
+            min-height: 720px;
+            background:
+                linear-gradient(
+                    180deg,
+                    rgba(17, 24, 39, 0.96) 0%,
+                    rgba(15, 23, 42, 0.98) 100%
+                );
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 72px;
+            box-shadow:
+                0 30px 100px rgba(0, 0, 0, 0.56),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(18px);
+            animation: cardEnter 0.8s ease both;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 54px;
+        }
+
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            position: relative;
+            animation: logoPulse 3s ease-in-out infinite;
+        }
+
+        .logo::after {
+            content: "";
+            position: absolute;
+            inset: 11px;
+            border: 2px solid white;
+            border-radius: 4px;
+        }
+
+        .system-label {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            color: #6b7280;
+        }
+
         .header {
-            text-align: center;
-            margin-bottom: 30px;
+            animation: fadeUp 0.7s ease both;
         }
-        
+
         .header h1 {
-            color: #333;
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: 54px;
+            font-weight: 800;
+            letter-spacing: -1.8px;
+            margin-bottom: 18px;
         }
-        
+
         .header p {
-            color: #666;
-            font-size: 14px;
+            color: var(--sub);
+            font-size: 18px;
+            line-height: 1.75;
+            max-width: 720px;
         }
-        
+
+        .info-box {
+            margin-top: 42px;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.22);
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 22px 24px;
+            color: #c7d2fe;
+            font-size: 16px;
+            line-height: 1.75;
+            animation: fadeUp 0.7s ease both;
+            animation-delay: 0.12s;
+        }
+
+        .form-area {
+            margin-top: 48px;
+            animation: fadeUp 0.7s ease both;
+            animation-delay: 0.22s;
+        }
+
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 26px;
         }
-        
+
         label {
             display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
+            margin-bottom: 13px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #e5e7eb;
         }
-        
+
         input[type="text"] {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+            height: 68px;
+            padding: 0 22px;
+            background: rgba(11, 18, 32, 0.88);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: white;
+            font-size: 17px;
+            transition: 0.2s ease;
+            font-family: inherit;
         }
-        
+
         input[type="text"]:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary);
+            box-shadow:
+                0 0 0 4px rgba(99, 102, 241, 0.12),
+                0 0 34px rgba(99, 102, 241, 0.18);
         }
-        
-        input[type="text"]::placeholder {
-            color: #999;
+
+        input::placeholder {
+            color: #6b7280;
         }
-        
+
         .button-group {
             display: flex;
-            gap: 10px;
-            margin-top: 30px;
+            gap: 14px;
+            margin-top: 34px;
         }
-        
+
         button {
-            flex: 1;
-            padding: 12px 20px;
+            height: 64px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
+            font-family: inherit;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: 0.22s ease;
         }
-        
+
         .btn-analyze {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            flex: 1;
+            background: var(--primary);
             color: white;
         }
-        
+
         .btn-analyze:hover {
+            background: var(--primary-hover);
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.32);
         }
-        
+
         .btn-analyze:active {
             transform: translateY(0);
         }
-        
+
         .btn-analyze:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
-        
+
         .btn-clear {
-            background: #f0f0f0;
-            color: #333;
+            width: 150px;
+            background: transparent;
+            color: #d1d5db;
+            border: 1px solid var(--line);
         }
-        
+
         .btn-clear:hover {
-            background: #e0e0e0;
+            background: rgba(255,255,255,0.04);
+            transform: translateY(-2px);
         }
-        
-        .info-box {
-            background: #f5f5f5;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            color: #666;
-            line-height: 1.6;
+
+        .btn-clear:active {
+            transform: translateY(0);
         }
-        
+
         .loading {
             display: none;
+            margin-top: 32px;
+            padding: 32px;
+            background: rgba(11, 18, 32, 0.86);
+            border: 1px solid var(--line);
+            border-radius: 8px;
             text-align: center;
-            margin-top: 20px;
+            animation: fadeUp 0.4s ease both;
         }
-        
+
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+            width: 46px;
+            height: 46px;
+            border: 3px solid rgba(255,255,255,0.08);
+            border-top-color: var(--primary);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+            margin: 0 auto 16px;
+            animation: spin 0.8s linear infinite;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .loading p {
+            color: #cbd5e1;
+            font-size: 15px;
         }
-        
+
         .status-message {
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 15px;
-            font-size: 14px;
-            text-align: center;
             display: none;
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            text-align: center;
+            animation: fadeUp 0.4s ease both;
         }
-        
+
         .status-message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
             display: block;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            color: #86efac;
         }
-        
+
         .status-message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
             display: block;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
         }
-        
+
         .history {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #e0e0e0;
+            margin-top: 48px;
+            border-top: 1px solid var(--line);
+            padding-top: 34px;
+            animation: fadeUp 0.7s ease both;
+            animation-delay: 0.32s;
         }
-        
+
         .history h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 16px;
+            margin-bottom: 18px;
+            font-size: 18px;
+            font-weight: 700;
         }
-        
+
         .history-list {
             list-style: none;
         }
-        
+
         .history-item {
-            padding: 10px 15px;
-            background: #f9f9f9;
-            border-radius: 5px;
-            margin-bottom: 8px;
-            font-size: 13px;
+            background: rgba(11, 18, 32, 0.86);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 12px;
+            transition: 0.22s ease;
             cursor: pointer;
-            transition: background 0.3s;
         }
-        
+
         .history-item:hover {
-            background: #f0f0f0;
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-2px);
+            background: rgba(99, 102, 241, 0.08);
         }
-        
+
         .history-item-domain {
-            color: #667eea;
-            font-weight: 600;
-            margin-bottom: 3px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #c7d2fe;
+            margin-bottom: 6px;
+            word-break: break-all;
         }
-        
+
         .history-item-time {
-            color: #999;
-            font-size: 12px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        @keyframes pageEnter {
+            from { opacity: 0; transform: translateY(18px) scale(0.985); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes cardEnter {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bgMove {
+            from { background-position: 0% 0%; }
+            to   { background-position: 20px 30px; }
+        }
+
+        @keyframes gridMove {
+            from { background-position: 0 0; }
+            to   { background-position: 46px 46px; }
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { box-shadow: 0 0 0 rgba(99, 102, 241, 0); }
+            50%       { box-shadow: 0 0 28px rgba(99, 102, 241, 0.45); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 18px; align-items: flex-start; }
+            .wrapper { max-width: 100%; }
+            .container { min-height: auto; padding: 34px 24px; }
+            .top-bar { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 38px; }
+            .header h1 { font-size: 34px; letter-spacing: -1px; }
+            .header p { font-size: 16px; }
+            .info-box { margin-top: 30px; font-size: 15px; }
+            .form-area { margin-top: 36px; }
+            input[type="text"] { height: 60px; font-size: 16px; }
+            .button-group { flex-direction: column; }
+            button { height: 58px; font-size: 15px; }
+            .btn-clear { width: 100%; }
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🔍 Darkweb Crawler</h1>
-            <p>.onion 도메인 자동 분석 및 신뢰도 평가</p>
-        </div>
-        
-        <div class="info-box">
-            <strong>ℹ️ 정보:</strong> .onion 도메인을 입력하면 접근성, 색인, 콘텐츠 분석 및 카테고리 분류를 수행합니다.
-        </div>
-        
-        <form id="analyzeForm">
-            <div class="form-group">
-                <label for="domain">도메인</label>
-                <input 
-                    type="text" 
-                    id="domain" 
-                    name="domain" 
-                    placeholder="예: example.onion"
-                    autocomplete="off"
-                >
+    <div class="wrapper">
+        <div class="container">
+
+            <div class="top-bar">
+                <div class="logo-wrap">
+                    <div class="logo"></div>
+                    <div>
+                        <div style="font-weight:700;">Darkweb Crawler</div>
+                        <div class="system-label">SECURITY ANALYSIS SYSTEM</div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="button-group">
-                <button type="submit" class="btn-analyze" id="analyzeBtn">
-                    🚀 분석 시작
-                </button>
-                <button type="reset" class="btn-clear" id="clearBtn">
-                    🗑️ 초기화
-                </button>
+
+            <div class="header">
+                <h1>Darkweb Domain Analysis</h1>
+                <p>
+                    .onion 도메인 접근성 확인, 색인 검증, 콘텐츠 분석 및 위험도 분류를 수행합니다.
+                </p>
             </div>
-        </form>
-        
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>분석 중입니다... (1-3분 소요)</p>
-        </div>
-        
-        <div class="status-message" id="statusMessage"></div>
-        
-        <div class="history" id="historyContainer" style="display: none;">
-            <h3>📋 최근 분석</h3>
-            <ul class="history-list" id="historyList"></ul>
+
+            <div class="info-box">
+                입력된 도메인은 검증 서버를 통해 접근 가능 여부를 확인하며,
+                수집된 HTML 데이터를 기반으로 카테고리 및 위험도를 분석합니다.
+            </div>
+
+            <form id="analyzeForm" class="form-area">
+                <div class="form-group">
+                    <label for="domain">도메인 입력</label>
+                    <input
+                        type="text"
+                        id="domain"
+                        name="domain"
+                        placeholder="example.onion"
+                        autocomplete="off"
+                    />
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-analyze" id="analyzeBtn">
+                        분석 시작
+                    </button>
+                    <button type="reset" class="btn-clear">
+                        초기화
+                    </button>
+                </div>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>도메인을 분석하고 있습니다...</p>
+            </div>
+
+            <div class="status-message" id="statusMessage"></div>
+
+            <div class="history" id="historyContainer" style="display:none;">
+                <h3>최근 분석 기록</h3>
+                <ul class="history-list" id="historyList"></ul>
+            </div>
+
         </div>
     </div>
-    
+
     <script>
-        // 분석 기록 로드
         function loadHistory() {
-            const history = JSON.parse(localStorage.getItem('analyzeHistory') || '[]');
-            const historyList = document.getElementById('historyList');
-            const historyContainer = document.getElementById('historyContainer');
-            
-            if (history.length === 0) {
-                historyContainer.style.display = 'none';
-                return;
-            }
-            
-            historyContainer.style.display = 'block';
-            historyList.innerHTML = '';
-            
-            history.slice(0, 5).forEach(item => {
-                const li = document.createElement('li');
-                li.className = 'history-item';
+            const history = JSON.parse(localStorage.getItem("analyzeHistory") || "[]");
+            const historyList = document.getElementById("historyList");
+            const historyContainer = document.getElementById("historyContainer");
+
+            if (history.length === 0) { historyContainer.style.display = "none"; return; }
+
+            historyContainer.style.display = "block";
+            historyList.innerHTML = "";
+
+            history.slice(0, 5).forEach((item) => {
+                const li = document.createElement("li");
+                li.className = "history-item";
                 li.innerHTML = `
                     <div class="history-item-domain">${item.domain}</div>
-                    <div class="history-item-time">${new Date(item.timestamp).toLocaleString('ko-KR')}</div>
+                    <div class="history-item-time">${new Date(item.timestamp).toLocaleString("ko-KR")}</div>
                 `;
                 li.onclick = () => {
-                    document.getElementById('domain').value = item.domain;
+                    document.getElementById("domain").value = item.domain;
                     submitAnalysis();
                 };
                 historyList.appendChild(li);
             });
         }
-        
-        // 분석 제출
-        function submitAnalysis() {
-            const domain = document.getElementById('domain').value.trim();
-            
-            if (!domain) {
-                showStatus('도메인을 입력해주세요', 'error');
-                return;
-            }
-            
-            if (!domain.endsWith('.onion')) {
-                showStatus('.onion 도메인만 지원합니다', 'error');
-                return;
-            }
-            
-            analyzeStep2(domain);
+
+        function showStatus(message, type) {
+            const status = document.getElementById("statusMessage");
+            status.textContent = message;
+            status.className = `status-message ${type}`;
         }
-        
-        // 2단계: 서버에 분석 요청
-        function analyzeStep2(domain) {
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('statusMessage').style.display = 'none';
-            document.getElementById('analyzeBtn').disabled = true;
-            
-            fetch('/api/analyze', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+
+        function saveToHistory(domain) {
+            const history = JSON.parse(localStorage.getItem("analyzeHistory") || "[]");
+            const filtered = history.filter(item => item.domain !== domain);
+            filtered.unshift({ domain, timestamp: new Date().toISOString() });
+            localStorage.setItem("analyzeHistory", JSON.stringify(filtered.slice(0, 20)));
+            loadHistory();
+        }
+
+        function submitAnalysis() {
+            const domain = document.getElementById("domain").value.trim();
+            if (!domain) { showStatus("도메인을 입력해주세요.", "error"); return; }
+            if (!domain.endsWith(".onion")) { showStatus(".onion 도메인만 지원합니다.", "error"); return; }
+            analyze(domain);
+        }
+
+        function analyze(domain) {
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("statusMessage").style.display = "none";
+            document.getElementById("analyzeBtn").disabled = true;
+
+            fetch("/api/analyze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ domain })
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('analyzeBtn').disabled = false;
-                
-                if (data.status === 'success') {
-                    // 분석 기록 저장
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("analyzeBtn").disabled = false;
+
+                if (data.status === "success") {
                     saveToHistory(domain);
-                    
-                    // 결과 페이지로 이동
                     window.location.href = `/results?domain=${encodeURIComponent(domain)}`;
                 } else {
-                    showStatus(data.message, 'error');
+                    showStatus(data.message, "error");
                 }
             })
             .catch(error => {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('analyzeBtn').disabled = false;
-                console.error('Error:', error);
-                showStatus('분석 중 오류가 발생했습니다', 'error');
+                console.error(error);
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("analyzeBtn").disabled = false;
+                showStatus("분석 중 오류가 발생했습니다.", "error");
             });
         }
-        
-        // 상태 메시지 표시
-        function showStatus(message, type) {
-            const statusDiv = document.getElementById('statusMessage');
-            statusDiv.textContent = message;
-            statusDiv.className = `status-message ${type}`;
-        }
-        
-        // 분석 기록 저장
-        function saveToHistory(domain) {
-            const history = JSON.parse(localStorage.getItem('analyzeHistory') || '[]');
-            
-            // 중복 제거
-            const newHistory = history.filter(item => item.domain !== domain);
-            
-            // 새 항목 추가
-            newHistory.unshift({
-                domain,
-                timestamp: new Date().toISOString()
-            });
-            
-            // 최대 20개 유지
-            localStorage.setItem('analyzeHistory', JSON.stringify(newHistory.slice(0, 20)));
-            
-            loadHistory();
-        }
-        
-        // 폼 제출
-        document.getElementById('analyzeForm').addEventListener('submit', (e) => {
+
+        document.getElementById("analyzeForm").addEventListener("submit", (e) => {
             e.preventDefault();
             submitAnalysis();
         });
-        
-        // 페이지 로드 시
-        document.addEventListener('DOMContentLoaded', loadHistory);
+
+        document.addEventListener("DOMContentLoaded", loadHistory);
     </script>
 </body>
 </html>
