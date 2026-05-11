@@ -166,7 +166,7 @@ class AgentReportGenerator:
         filename = f"analysis_report_{domain.replace('.', '_')}_{timestamp}.html"
         filepath = self.output_dir / filename
 
-        charts = self._generate_charts(trust_analysis)
+        charts = self._generate_charts(coda_result or {}, category_result or {})
         html_content = self._generate_html(
             domain=domain,
             analysis_result=analysis_result,
@@ -191,12 +191,24 @@ class AgentReportGenerator:
         except Exception:
             return []
 
-    def _generate_charts(self, trust_analysis: Dict) -> Dict:
+    def _generate_charts(self, coda_result: Dict, category_result: Dict) -> Dict:
         charts = {}
         if not MATPLOTLIB_AVAILABLE:
             return charts
         try:
-            charts['trust_radar'] = self._create_trust_radar_chart(trust_analysis)
+            if coda_result.get('all_probs'):
+                charts['coda'] = self._create_bar_chart(
+                    data=coda_result['all_probs'],
+                    title='CoDA 범죄 카테고리 확률',
+                    color='#ef4444'
+                )
+            cat_scores = category_result.get('category_scores', {})
+            if cat_scores:
+                charts['category'] = self._create_bar_chart(
+                    data=cat_scores,
+                    title='사이트 유형 분류 점수',
+                    color='#6366f1'
+                )
         except Exception as e:
             logger.error(f"차트 생성 오류: {e}")
         return charts
@@ -210,37 +222,36 @@ class AgentReportGenerator:
         plt.close(fig)
         return result
 
-    def _create_trust_radar_chart(self, trust_analysis: Dict) -> str:
+    def _create_bar_chart(self, data: Dict, title: str, color: str) -> str:
         try:
-            fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(projection='polar'))
+            labels = list(data.keys())
+            values = [v * 100 if v <= 1.0 else float(v) for v in data.values()]
+
+            fig_h = max(3, len(labels) * 0.6)
+            fig, ax = plt.subplots(figsize=(8, fig_h))
             fig.patch.set_facecolor('#111827')
             ax.set_facecolor('#111827')
 
-            scores = {
-                '접근성': trust_analysis['score_breakdown']['accessibility']['percentage'],
-                '색인 신뢰도': trust_analysis['score_breakdown']['indexing']['percentage'],
-                '콘텐츠 신뢰도': trust_analysis['score_breakdown']['content']['percentage']
-            }
-            categories = list(scores.keys())
-            values = list(scores.values())
-            angles = [i / len(categories) * 2 * 3.14159 for i in range(len(categories))]
-            values += values[:1]
-            angles += angles[:1]
+            bars = ax.barh(labels, values, color=color, alpha=0.82, height=0.55)
 
-            ax.plot(angles, values, 'o-', linewidth=2.5, color='#8b5cf6')
-            ax.fill(angles, values, alpha=0.24, color='#8b5cf6')
-            ax.set_xticks(angles[:-1])
-            ax.set_xticklabels(categories, size=10, color='#f9fafb')
-            ax.set_ylim(0, 100)
-            ax.set_yticks([20, 40, 60, 80, 100])
-            ax.set_yticklabels(['20', '40', '60', '80', '100'], color='#9ca3af', fontsize=8)
-            ax.set_title('신뢰도 점수 분석', size=13, weight='bold', color='#f9fafb', pad=24)
-            ax.grid(True, color='#374151', alpha=0.65)
-            ax.spines['polar'].set_color('#4b5563')
+            for bar, val in zip(bars, values):
+                ax.text(bar.get_width() + 0.8, bar.get_y() + bar.get_height() / 2,
+                        f'{val:.1f}%', va='center', ha='left', color='#f9fafb', fontsize=9)
+
+            ax.set_xlim(0, 115)
+            ax.set_xlabel('%', color='#9ca3af', fontsize=10)
+            ax.set_title(title, color='#f9fafb', fontsize=12, fontweight='bold', pad=12)
+            ax.tick_params(colors='#9ca3af')
+            for spine in ('top', 'right'):
+                ax.spines[spine].set_visible(False)
+            ax.spines['bottom'].set_color('#374151')
+            ax.spines['left'].set_color('#374151')
+            ax.xaxis.label.set_color('#9ca3af')
+            ax.yaxis.label.set_color('#9ca3af')
             fig.tight_layout()
             return self._save_chart(fig)
         except Exception as e:
-            logger.error(f"신뢰도 차트 오류: {e}")
+            logger.error(f"막대 차트 오류: {e}")
             return ""
 
     def _generate_html(self, domain: str, analysis_result: Dict, trust_analysis: Dict,
@@ -371,6 +382,9 @@ class AgentReportGenerator:
             h += f'<div class="info-box"><div class="info-box-title">주요 유형</div><div class="info-box-content"><span style="font-size:18px;font-weight:900;color:#c7d2fe;">{primary}</span> &nbsp;{conf}%</div></div>'
             if secondary:
                 h += f'<div class="info-box" style="margin-top:10px;"><div class="info-box-title">보조 유형</div><div class="info-box-content">{secondary.replace("_"," ").title()}</div></div>'
+            if charts.get('category'):
+                cat_chart = charts['category']
+                h += f'<div class="chart-container"><img src="data:image/png;base64,{cat_chart}" alt="사이트 유형 분류 차트"></div>'
         h += '</div>'
 
         # CoDA 분류
@@ -394,11 +408,10 @@ class AgentReportGenerator:
                     for k, v in list(all_probs.items())[:5]
                 )
                 h += f'<div class="info-box" style="margin-top:10px;"><div class="info-box-title">상위 5개 확률</div><div class="info-box-content" style="font-size:13px;">{probs_html}</div></div>'
+            if charts.get('coda'):
+                coda_chart = charts['coda']
+                h += f'<div class="chart-container"><img src="data:image/png;base64,{coda_chart}" alt="CoDA 범죄 카테고리 차트"></div>'
         h += '</div>'
-
-        # 신뢰도 차트
-        if charts.get('trust_radar'):
-            h += f'<div class="section"><div class="section-title">신뢰도 그래프</div><div class="chart-container"><img src="data:image/png;base64,{charts["trust_radar"]}" alt="신뢰도 레이더"></div></div>'
 
         # LLM 분석
         if llm_result and llm_result.get('success'):
