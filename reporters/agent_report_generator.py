@@ -322,19 +322,22 @@ class AgentReportGenerator:
     <div class="trust-score">{trust_analysis['total_score']}/100</div>
     <div class="trust-level">{trust_level_ko}</div>
   </div>
-  <div class="score-breakdown">
+  <div class="score-breakdown" style="grid-template-columns: repeat(2, 1fr);">
     <div class="score-item"><div class="score-item-value">{sb['accessibility']['score']}</div><div class="score-item-label">접근성 (40점)</div></div>
     <div class="score-item"><div class="score-item-value">{sb['indexing']['score']}</div><div class="score-item-label">색인 (30점)</div></div>
-    <div class="score-item"><div class="score-item-value">{sb['content']['score']}</div><div class="score-item-label">콘텐츠 (30점)</div></div>
   </div>
 </div>
 """
 
-        # 상세 분석
+        # 상세 분석 (콘텐츠 관련 줄 제외)
+        detailed = '\n'.join(
+            line for line in trust_analysis.get('detailed_analysis', '').splitlines()
+            if '콘텐츠' not in line
+        )
         h += f"""
 <div class="section">
   <div class="section-title">상세 분석</div>
-  <div class="analysis-section"><div class="analysis-text">{trust_analysis.get('detailed_analysis','')}</div></div>
+  <div class="analysis-section"><div class="analysis-text">{detailed}</div></div>
 </div>
 """
 
