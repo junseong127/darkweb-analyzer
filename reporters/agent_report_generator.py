@@ -312,34 +312,6 @@ class AgentReportGenerator:
         if analysis_result.get('analysis_warning'):
             h += f'<div class="warn-box" style="margin-top:24px;">⚠️ {analysis_result["analysis_warning"]}</div>'
 
-        # 신뢰도
-        sb = trust_analysis['score_breakdown']
-        h += f"""
-<div class="section">
-  <div class="section-title">종합 신뢰도 분석</div>
-  <div class="trust-card">
-    <div>신뢰도 점수</div>
-    <div class="trust-score">{trust_analysis['total_score']}/100</div>
-    <div class="trust-level">{trust_level_ko}</div>
-  </div>
-  <div class="score-breakdown" style="grid-template-columns: repeat(2, 1fr);">
-    <div class="score-item"><div class="score-item-value">{sb['accessibility']['score']}</div><div class="score-item-label">접근성 (40점)</div></div>
-    <div class="score-item"><div class="score-item-value">{sb['indexing']['score']}</div><div class="score-item-label">색인 (30점)</div></div>
-  </div>
-</div>
-"""
-
-        # 상세 분석 (콘텐츠 관련 줄 제외)
-        detailed = '\n'.join(
-            line for line in trust_analysis.get('detailed_analysis', '').splitlines()
-            if '콘텐츠' not in line
-        )
-        h += f"""
-<div class="section">
-  <div class="section-title">상세 분석</div>
-  <div class="analysis-section"><div class="analysis-text">{detailed}</div></div>
-</div>
-"""
 
         # 접근성
         response_time = round(accessibility.get('response_time') or 0, 2)
