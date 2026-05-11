@@ -161,7 +161,7 @@ class AgentReportGenerator:
 
     def generate_report(self, domain: str, analysis_result: Dict,
                         trust_analysis: Dict, coda_result: Dict = None,
-                        llm_result: Dict = None) -> str:
+                        llm_result: Dict = None, category_result: Dict = None) -> str:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"analysis_report_{domain.replace('.', '_')}_{timestamp}.html"
         filepath = self.output_dir / filename
@@ -173,7 +173,8 @@ class AgentReportGenerator:
             trust_analysis=trust_analysis,
             coda_result=coda_result or {},
             charts=charts,
-            llm_result=llm_result or {}
+            llm_result=llm_result or {},
+            category_result=category_result or {}
         )
 
         with open(filepath, 'w', encoding='utf-8') as f:
@@ -243,7 +244,8 @@ class AgentReportGenerator:
             return ""
 
     def _generate_html(self, domain: str, analysis_result: Dict, trust_analysis: Dict,
-                       coda_result: Dict, charts: Dict, llm_result: Dict) -> str:
+                       coda_result: Dict, charts: Dict, llm_result: Dict,
+                       category_result: Dict = None) -> str:
         accessibility = analysis_result.get('accessibility', {})
         indexing = analysis_result.get('indexing', {})
         html_collected = analysis_result.get('html_collected', False)
@@ -353,6 +355,22 @@ class AgentReportGenerator:
             onion_domains = self._extract_onion_domains(analysis_result.get('html_content', ''))
             if onion_domains:
                 h += f'<div class="info-box"><div class="info-box-title">페이지 내 .onion 도메인 ({len(onion_domains)}개)</div><div class="info-box-content" style="font-size:12px;">' + '<br>'.join(onion_domains) + '</div></div>'
+        h += '</div>'
+
+        # 사이트 유형 분류 (BART)
+        category_result = category_result or {}
+        h += '<div class="section"><div class="section-title">사이트 유형 분류</div>'
+        if not html_collected:
+            h += '<div class="info-box"><div class="info-box-content">HTML 미수집으로 분석을 수행하지 않았습니다.</div></div>'
+        elif category_result.get('skip_reason'):
+            h += '<div class="info-box"><div class="info-box-content">분류 스킵됨</div></div>'
+        else:
+            primary = category_result.get('primary_category', 'unknown').replace('_', ' ').title()
+            secondary = category_result.get('secondary_category')
+            conf = round(category_result.get('confidence', 0) * 100, 1)
+            h += f'<div class="info-box"><div class="info-box-title">주요 유형</div><div class="info-box-content"><span style="font-size:18px;font-weight:900;color:#c7d2fe;">{primary}</span> &nbsp;{conf}%</div></div>'
+            if secondary:
+                h += f'<div class="info-box" style="margin-top:10px;"><div class="info-box-title">보조 유형</div><div class="info-box-content">{secondary.replace("_"," ").title()}</div></div>'
         h += '</div>'
 
         # CoDA 분류

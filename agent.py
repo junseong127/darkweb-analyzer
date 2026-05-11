@@ -114,12 +114,19 @@ class DarkwebDomainAgent:
             # content_analysis는 신뢰도 계산용으로만 최소한 유지
             content_analysis = {'is_illegal': False, 'illegal_confidence': 0,
                                 'primary_illegal_type': None}
-            
-            # 3단계: 카테고리 분류
-            logger.info("[3/4] 🏷️ 카테고리 분류 중...")
-            
-            # 3단계: LLM 사이트 요약 분석
-            logger.info("[3/6] 🤖 LLM 사이트 요약 분석 중...")
+
+            # 3단계: 사이트 유형 분류 (BART zero-shot)
+            logger.info("[3/6] 🏷️ 사이트 유형 분류 중...")
+            if html_collected:
+                category_result = self.classifier.classify_content(html_content)
+                logger.info(f"    ✅ 사이트 유형: {category_result.get('primary_category', 'unknown')}")
+            else:
+                logger.warning("    ⚠️ HTML 미수집 - 사이트 유형 분류 스킵")
+                category_result = {'primary_category': 'unknown', 'secondary_category': None,
+                                   'confidence': 0, 'skip_reason': 'HTML not collected'}
+
+            # 4단계: LLM 사이트 요약 분석
+            logger.info("[4/6] 🤖 LLM 사이트 요약 분석 중...")
             if html_collected:
                 llm_result = self.llm_analyzer.analyze(html_content, domain=domain)
                 if llm_result['success']:
@@ -152,7 +159,8 @@ class DarkwebDomainAgent:
                 analysis_result=server_analysis['analysis'],
                 trust_analysis=trust_analysis,
                 coda_result=coda_result,
-                llm_result=llm_result
+                llm_result=llm_result,
+                category_result=category_result
             )
             
             logger.info("    ✅ 보고서 생성 완료")
