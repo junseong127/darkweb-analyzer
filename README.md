@@ -10,8 +10,8 @@
 |------|------|
 | HTML 수집 | Tor SOCKS5 프록시를 통해 .onion 사이트 크롤링 |
 | CoDA 범죄 분류 | DarkBERT + LogisticRegression으로 범죄 카테고리 분류 (93% 정확도) |
-| LLM 사이트 요약 | Claude API 기반 사이트 목적/위험도 자동 분석 |
-| 신뢰도 점수 | 접근성 40점 + 색인 30점 + 콘텐츠 30점 = 100점 |
+| 사이트 유형 분류 | BART zero-shot 분류기로 포럼·마켓플레이스·블로그 등 유형 판별 |
+| LLM 사이트 요약 | Claude API 기반 사이트 목적·위험도 자동 분석 (API 키 선택사항) |
 | 검색 색인 확인 | Ahmia, DuckDuckGo 등재 여부 확인 |
 | HTML 보고서 생성 | 분석 결과를 시각화한 HTML 보고서 자동 생성 |
 | CSAM 안전장치 | 아동 관련 불법 콘텐츠 감지 시 즉시 차단 |
@@ -87,11 +87,27 @@ web/app.py  →  agent.py
                   ↓
       analyzers/
         ├── coda_classifier.py   # DarkBERT + LR 분류기
+        ├── category_classifier.py  # BART zero-shot 사이트 유형 분류
         ├── llm_analyzer.py      # Claude API 요약
         └── trust_scorer.py      # 신뢰도 계산
                   ↓
       reporters/agent_report_generator.py  →  HTML 보고서
 ```
+
+---
+
+## 보고서 구성
+
+생성된 HTML 보고서에는 다음 항목이 포함됩니다.
+
+| 항목 | 설명 |
+|------|------|
+| 접근성 정보 | HTTP 상태코드, 응답 시간, HTML 수집 여부 |
+| 검색 색인 정보 | Ahmia·DuckDuckGo 등재 여부 및 결과 수 |
+| 사이트 유형 분류 | BART 기반 포럼·마켓플레이스·블로그 등 분류 (막대 그래프) |
+| CoDA 범죄 카테고리 | DarkBERT 기반 9개 범죄 카테고리 분류 (막대 그래프) |
+| AI 사이트 분석 | Claude API 기반 목적·요약·위험도 분석 (API 키 필요) |
+| 조사 결론 | 접근성·색인 상태·분류 결과 종합 요약 |
 
 ---
 
@@ -204,6 +220,7 @@ darkweb_crawler/
 │   └── config.py                   # 서버 설정 (타임아웃 등)
 ├── analyzers/
 │   ├── coda_classifier.py          # CoDA 추론 모듈
+│   ├── category_classifier.py      # BART 사이트 유형 분류
 │   ├── train_coda_classifier.py    # 분류기 학습 스크립트
 │   ├── llm_analyzer.py             # Claude API 분석
 │   └── trust_scorer.py             # 신뢰도 계산
