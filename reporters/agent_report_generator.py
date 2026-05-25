@@ -312,6 +312,30 @@ class AgentReportGenerator:
         if analysis_result.get('analysis_warning'):
             h += f'<div class="warn-box" style="margin-top:24px;">⚠️ {analysis_result["analysis_warning"]}</div>'
 
+        # LLM 분석 (최상단)
+        if llm_result and llm_result.get('success'):
+            risk = llm_result.get('risk_level', '')
+            risk_cls = {'낮음': 'status-success', '중간': 'status-warning', '높음': 'status-danger', '매우높음': 'status-danger'}.get(risk, '')
+            features = llm_result.get('notable_features', [])
+            features_html = ('<ul style="margin:8px 0 0 16px;">' + ''.join(f'<li style="font-size:13px;margin-bottom:4px;">{f}</li>' for f in features) + '</ul>') if features else ''
+            h += f"""
+<div class="section">
+  <div class="section-title">AI 사이트 분석</div>
+  <div class="info-grid">
+    <div class="info-box"><div class="info-box-title">사이트 유형</div><div class="info-box-content">{llm_result.get('site_type') or '-'}</div></div>
+    <div class="info-box"><div class="info-box-title">주요 언어</div><div class="info-box-content">{llm_result.get('language') or '-'}</div></div>
+  </div>
+  <div class="info-box"><div class="info-box-title">목적</div><div class="info-box-content">{llm_result.get('purpose') or '-'}</div></div>
+  <div class="info-box"><div class="info-box-title">요약</div><div class="info-box-content">{llm_result.get('summary') or '-'}</div></div>
+  <div class="info-box"><div class="info-box-title">AI 위험도 평가</div><div class="info-box-content"><span class="status-badge {risk_cls}">{risk}</span> {llm_result.get('risk_reason') or ''}</div></div>
+  {f'<div class="info-box"><div class="info-box-title">주목할 특징</div><div class="info-box-content">{features_html}</div></div>' if features_html else ''}
+  <div style="font-size:11px;color:var(--muted);margin-top:10px;">모델: {llm_result.get('model_used') or ''}</div>
+</div>
+"""
+        elif llm_result and not llm_result.get('success'):
+            err = llm_result.get('error', '')
+            if err not in ('HTML 미수집', 'API 키 미설정'):
+                h += f'<div class="section"><div class="section-title">AI 사이트 분석</div><div class="info-box"><div class="info-box-content">분석 실패: {err}</div></div></div>'
 
         # 접근성
         response_time = round(accessibility.get('response_time') or 0, 2)
@@ -397,31 +421,6 @@ class AgentReportGenerator:
                 coda_chart = charts['coda']
                 h += f'<div class="chart-container"><img src="data:image/png;base64,{coda_chart}" alt="CoDA 범죄 카테고리 차트"></div>'
         h += '</div>'
-
-        # LLM 분석
-        if llm_result and llm_result.get('success'):
-            risk = llm_result.get('risk_level', '')
-            risk_cls = {'낮음': 'status-success', '중간': 'status-warning', '높음': 'status-danger', '매우높음': 'status-danger'}.get(risk, '')
-            features = llm_result.get('notable_features', [])
-            features_html = ('<ul style="margin:8px 0 0 16px;">' + ''.join(f'<li style="font-size:13px;margin-bottom:4px;">{f}</li>' for f in features) + '</ul>') if features else ''
-            h += f"""
-<div class="section">
-  <div class="section-title">AI 사이트 분석 (Claude)</div>
-  <div class="info-grid">
-    <div class="info-box"><div class="info-box-title">사이트 유형</div><div class="info-box-content">{llm_result.get('site_type') or '-'}</div></div>
-    <div class="info-box"><div class="info-box-title">주요 언어</div><div class="info-box-content">{llm_result.get('language') or '-'}</div></div>
-  </div>
-  <div class="info-box"><div class="info-box-title">목적</div><div class="info-box-content">{llm_result.get('purpose') or '-'}</div></div>
-  <div class="info-box"><div class="info-box-title">요약</div><div class="info-box-content">{llm_result.get('summary') or '-'}</div></div>
-  <div class="info-box"><div class="info-box-title">AI 위험도 평가</div><div class="info-box-content"><span class="status-badge {risk_cls}">{risk}</span> {llm_result.get('risk_reason') or ''}</div></div>
-  {f'<div class="info-box"><div class="info-box-title">주목할 특징</div><div class="info-box-content">{features_html}</div></div>' if features_html else ''}
-  <div style="font-size:11px;color:var(--muted);margin-top:10px;">모델: {llm_result.get('model_used') or ''}</div>
-</div>
-"""
-        elif llm_result and not llm_result.get('success'):
-            err = llm_result.get('error', '')
-            if err not in ('HTML 미수집', 'API 키 미설정'):
-                h += f'<div class="section"><div class="section-title">AI 사이트 분석 (Claude)</div><div class="info-box"><div class="info-box-content">분석 실패: {err}</div></div></div>'
 
         # 결론
         coda_summary = ''
