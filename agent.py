@@ -203,7 +203,7 @@ class DarkwebDomainAgent:
             response = requests.post(
                 endpoint,
                 json=payload,
-                timeout=120  # 최대 2분
+                timeout=360  # 최대 6분
             )
             
             if response.status_code != 200:

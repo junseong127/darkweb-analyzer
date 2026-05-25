@@ -11,7 +11,7 @@
 | HTML 수집 | Tor SOCKS5 프록시를 통해 .onion 사이트 크롤링 |
 | CoDA 범죄 분류 | DarkBERT + LogisticRegression으로 범죄 카테고리 분류 (93% 정확도) |
 | 사이트 유형 분류 | BART zero-shot 분류기로 포럼·마켓플레이스·블로그 등 유형 판별 |
-| LLM 사이트 요약 | Claude API 기반 사이트 목적·위험도 자동 분석 (API 키 선택사항) |
+| LLM 사이트 요약 | OpenAI API (GPT-4o-mini) 기반 사이트 목적·위험도 자동 분석 (API 키 선택사항) |
 | 검색 색인 확인 | Ahmia, DuckDuckGo 등재 여부 확인 |
 | HTML 보고서 생성 | 분석 결과를 시각화한 HTML 보고서 자동 생성 |
 | CSAM 안전장치 | 아동 관련 불법 콘텐츠 감지 시 즉시 차단 |
@@ -88,7 +88,7 @@ web/app.py  →  agent.py
       analyzers/
         ├── coda_classifier.py   # DarkBERT + LR 분류기
         ├── category_classifier.py  # BART zero-shot 사이트 유형 분류
-        ├── llm_analyzer.py      # Claude API 요약
+        ├── llm_analyzer.py      # OpenAI API 요약 (GPT-4o-mini)
         └── trust_scorer.py      # 신뢰도 계산
                   ↓
       reporters/agent_report_generator.py  →  HTML 보고서
@@ -106,7 +106,7 @@ web/app.py  →  agent.py
 | 검색 색인 정보 | Ahmia·DuckDuckGo 등재 여부 및 결과 수 |
 | 사이트 유형 분류 | BART 기반 포럼·마켓플레이스·블로그 등 분류 (막대 그래프) |
 | CoDA 범죄 카테고리 | DarkBERT 기반 9개 범죄 카테고리 분류 (막대 그래프) |
-| AI 사이트 분석 | Claude API 기반 목적·요약·위험도 분석 (API 키 필요) |
+| AI 사이트 분석 | OpenAI API (GPT-4o-mini) 기반 목적·요약·위험도 분석 (API 키 필요) |
 | 조사 결론 | 접근성·색인 상태·분류 결과 종합 요약 |
 
 ---
@@ -159,12 +159,14 @@ python3 analyzers/train_coda_classifier.py
 **4. 서버 실행**
 
 ```bash
-# 터미널 1 - 분석 서버
+# 터미널 1 - 분석 서버 (Tor 크롤링, 포트 5001)
 python3 server/app.py
 
-# 터미널 2 - 웹 UI
-python3 web/app.py
+# 터미널 2 - 웹 UI (포트 8080)
+python3 launcher.py 2
 ```
+
+> `launcher.py`는 `.env` 파일을 자동으로 로드합니다. `web/app.py`를 직접 실행하면 `.env`가 로드되지 않을 수 있습니다.
 
 **5. 브라우저 접속**
 
@@ -201,7 +203,7 @@ python3 web/app.py  # 포트 8080
 `.env` 파일을 프로젝트 루트에 생성하세요.
 
 ```env
-ANTHROPIC_API_KEY=your_api_key_here  # LLM 분석 기능 (선택사항)
+OPENAI_API_KEY=your_api_key_here  # LLM 분석 기능 (선택사항)
 ```
 
 API 키가 없으면 LLM 분석은 스킵되고 나머지 기능은 정상 동작합니다.
@@ -222,7 +224,7 @@ darkweb_crawler/
 │   ├── coda_classifier.py          # CoDA 추론 모듈
 │   ├── category_classifier.py      # BART 사이트 유형 분류
 │   ├── train_coda_classifier.py    # 분류기 학습 스크립트
-│   ├── llm_analyzer.py             # Claude API 분석
+│   ├── llm_analyzer.py             # OpenAI API 분석 (GPT-4o-mini)
 │   └── trust_scorer.py             # 신뢰도 계산
 ├── reporters/
 │   └── agent_report_generator.py  # HTML 보고서 생성
@@ -234,5 +236,5 @@ darkweb_crawler/
 ## 주의사항
 
 - 이 도구는 **보안 연구 목적**으로 개발되었습니다.
-- 실행 시 로컬에 Tor가 설치되어 있어야 합니다 (SOCKS5 포트 9050).
+- 실행 시 Tor 브라우저 또는 Tor 서비스가 실행 중이어야 합니다 (SOCKS5 포트 9150).
 - 학습된 모델 파일(`data/coda_classifier.pkl`)은 용량 문제로 저장소에 포함되지 않습니다. 최초 실행 시 직접 학습이 필요합니다.

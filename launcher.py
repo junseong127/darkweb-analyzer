@@ -6,6 +6,8 @@ CLI 모드 또는 웹 모드 선택 가능
 
 import sys
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 def show_menu():
     print("""

@@ -1,11 +1,12 @@
 """
-LLM 기반 다크웹 사이트 분석기 - Claude API 사용
+LLM 기반 다크웹 사이트 분석기 - OpenAI API 사용
 HTML 콘텐츠를 분석하여 사이트 목적/특성 자연어 요약
 """
 
 import os
 import logging
 import re
+import json
 from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
@@ -31,29 +32,29 @@ SYSTEM_PROMPT = """당신은 다크웹 사이트 분석 전문가입니다. 제�
 
 
 class LLMAnalyzer:
-    """Claude API를 사용한 사이트 요약 분석기"""
+    """OpenAI API를 사용한 사이트 요약 분석기"""
 
     def __init__(self, api_key: Optional[str] = None,
-                 model: str = "claude-haiku-4-5-20251001",
+                 model: str = "gpt-4o-mini",
                  max_input_chars: int = 8000):
-        self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
+        self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
         self.model = model
         self.max_input_chars = max_input_chars
         self._client = None
 
         if not self.api_key:
-            logger.warning("⚠️ ANTHROPIC_API_KEY 미설정 - LLM 분석 비활성화")
+            logger.warning("⚠️ OPENAI_API_KEY 미설정 - LLM 분석 비활성화")
 
     def _get_client(self):
         if self._client is not None:
             return self._client
 
         try:
-            import anthropic
-            self._client = anthropic.Anthropic(api_key=self.api_key)
+            from openai import OpenAI
+            self._client = OpenAI(api_key=self.api_key)
             return self._client
         except ImportError:
-            logger.error("❌ anthropic 패키지 미설치: pip install anthropic")
+            logger.error("❌ openai 패키지 미설치: pip install openai")
             return None
 
     def _clean_html(self, html: str) -> str:
@@ -64,23 +65,6 @@ class LLMAnalyzer:
         return text.strip()
 
     def analyze(self, html: str, domain: str = "") -> Dict:
-        """
-        HTML 콘텐츠를 분석하여 사이트 요약 반환
-
-        Returns:
-            {
-                'success': bool,
-                'summary': str,
-                'purpose': str,
-                'site_type': str,
-                'risk_level': str,
-                'risk_reason': str,
-                'notable_features': list,
-                'language': str,
-                'model_used': str,
-                'error': str | None
-            }
-        """
         empty_result = {
             'success': False,
             'summary': None,
@@ -104,7 +88,7 @@ class LLMAnalyzer:
 
         client = self._get_client()
         if client is None:
-            empty_result['error'] = 'anthropic 패키지 미설치'
+            empty_result['error'] = 'openai 패키지 미설치'
             return empty_result
 
         text = self._clean_html(html)
@@ -112,7 +96,6 @@ class LLMAnalyzer:
             empty_result['error'] = '분석할 텍스트 없음'
             return empty_result
 
-        # 토큰 절약: 최대 글자 수 제한
         if len(text) > self.max_input_chars:
             text = text[:self.max_input_chars] + "... (이하 생략)"
 
@@ -122,25 +105,17 @@ class LLMAnalyzer:
         try:
             logger.info(f"🤖 LLM 분석 시작: {domain} (모델: {self.model})")
 
-            response = client.messages.create(
+            response = client.chat.completions.create(
                 model=self.model,
                 max_tokens=512,
-                system=[
-                    {
-                        "type": "text",
-                        "text": SYSTEM_PROMPT,
-                        "cache_control": {"type": "ephemeral"}
-                    }
-                ],
                 messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": user_content}
                 ]
             )
 
-            raw = response.content[0].text.strip()
+            raw = response.choices[0].message.content.strip()
 
-            # JSON 파싱
-            import json
             json_match = re.search(r'\{.*\}', raw, re.DOTALL)
             if not json_match:
                 raise ValueError(f"JSON 응답 파싱 실패: {raw[:100]}")
