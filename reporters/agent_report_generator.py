@@ -433,7 +433,6 @@ class AgentReportGenerator:
   <div class="section-title">조사 결론</div>
   <div class="analysis-section">
     <p><strong>도메인:</strong> {domain}</p>
-    <p><strong>신뢰도:</strong> {trust_level_ko} ({trust_analysis['total_score']}/100)</p>
     <p><strong>접근성:</strong> {'가능' if accessibility.get('is_accessible') else '불가'}</p>
     <p><strong>HTML 수집:</strong> {'수집됨' if html_collected else '미수집'}</p>
     <p><strong>색인 상태:</strong> {'공개' if indexing.get('combined_found') else '은닉'}</p>
