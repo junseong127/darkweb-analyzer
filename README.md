@@ -237,4 +237,5 @@ darkweb_crawler/
 
 - 이 도구는 **보안 연구 목적**으로 개발되었습니다.
 - 실행 시 Tor 브라우저 또는 Tor 서비스가 실행 중이어야 합니다 (SOCKS5 포트 9150).
-- 학습된 모델 파일(`data/coda_classifier.pkl`)은 용량 문제로 저장소에 포함되지 않습니다. 최초 실행 시 직접 학습이 필요합니다.
+- 학습된 모델 파일(`data/coda_classifier.pkl`, `data/coda_centroids.csv`)은 저장소에 포함되어 있습니다. 별도 학습 없이 바로 사용 가능합니다.
+- 모델을 직접 재학습하려면 S2W로부터 `processed_coda_data_final.csv` (CoDA 데이터셋)를 허가 후 수령해야 합니다. 재학습 시 `data/coda_embeddings.npz` 캐시 파일이 자동 생성됩니다.

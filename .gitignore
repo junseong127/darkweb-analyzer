@@ -1,7 +1,6 @@
 .env
 logs/
 analysis_reports/
-data/*.pkl
 data/*.npz
 __pycache__/
 *.pyc
