@@ -179,12 +179,19 @@ python3 server/app.py  # 포트 5001
 
 **로컬 Mac에서:**
 
-`server/config.py`의 서버 URL을 우분투 IP로 수정 후:
+`web/app.py` 또는 `agent.py`에서 서버 URL을 Ubuntu IP로 변경:
+
+```python
+# agent.py 상단 DarkwebDomainAgent 기본값 수정
+server_url = "http://<Ubuntu_IP>:5001"
+```
 
 ```bash
 pip install -r requirements.txt
 python3 launcher.py 2  # 포트 8080
 ```
+
+> Ubuntu `tor` 서비스는 기본적으로 SOCKS5 포트 **9050**을 사용합니다 (Tor 브라우저의 9150과 다름). `server/config.py`의 포트 설정을 바꾸지 마세요.
 
 ---
 

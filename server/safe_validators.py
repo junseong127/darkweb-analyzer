@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class SafeAccessibilityValidator:
     """안전한 도메인 접근성 검증 (curl SOCKS5)"""
     
-    def __init__(self, tor_host: str = '127.0.0.1', tor_port: int = 9150, timeout: int = 15):
+    def __init__(self, tor_host: str = '127.0.0.1', tor_port: int = 9050, timeout: int = 15):
         self.tor_host = tor_host
         self.tor_port = tor_port
         self.timeout = timeout
