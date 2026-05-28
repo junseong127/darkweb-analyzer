@@ -31,121 +31,224 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+_KO_CATEGORY = {
+    'marketplace':              '온라인 마켓플레이스',
+    'social_communication':     '소셜 / 커뮤니케이션',
+    'blog':                     '블로그',
+    'news':                     '뉴스 / 미디어',
+    'product_promotion':        '제품·서비스 홍보',
+    'documentation':            '기술 문서 / 위키',
+    'authentication_required':  '로그인 필수',
+    'forum':                    '포럼 / 토론',
+    'social_network':           '소셜 네트워크',
+    'communication':            '통신 / 메시지',
+    'personal_blog':            '개인 블로그',
+    'marketplace_forum_mixed':  '마켓 + 포럼 혼합',
+    'unknown':                  '분류 불가',
+}
+
+_KO_CODA = {
+    'Arms':        '무기 거래',
+    'Crypto':      '암호화폐',
+    'Drugs':       '마약',
+    'Electronic':  '전자기기',
+    'Financial':   '금융 사기',
+    'Gambling':    '도박',
+    'Hacking':     '해킹',
+    'Porn':        '성인물',
+    'Violence':    '폭력',
+}
+
+
 CSS = """
 <style>
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
-    --bg: #070816; --line: rgba(255,255,255,0.11); --text: #f9fafb;
-    --sub: #9ca3af; --muted: #667085; --primary: #6366f1;
-    --purple: #8b5cf6; --pink: #ec4899; --cyan: #38bdf8;
+    --bg: #060714; --line: rgba(255,255,255,0.09); --text: #f1f5f9;
+    --sub: #94a3b8; --muted: #64748b; --primary: #6366f1;
+    --purple: #8b5cf6; --pink: #ec4899; --cyan: #22d3ee;
+    --green: #10b981; --amber: #f59e0b;
     --danger: #ef4444; --success: #22c55e;
+    --card-bg: rgba(15,20,40,0.92);
 }
 body {
     font-family: "Pretendard", sans-serif;
     background:
-        radial-gradient(circle at 18% 8%, rgba(139,92,246,0.3), transparent 32%),
-        radial-gradient(circle at 88% 20%, rgba(236,72,153,0.2), transparent 30%),
-        radial-gradient(circle at 70% 92%, rgba(56,189,248,0.16), transparent 32%),
-        linear-gradient(135deg, #070816 0%, #0b1020 55%, #090916 100%);
-    color: var(--text); min-height: 100vh; padding: 32px;
-    overflow-x: hidden; animation: bgMove 12s ease-in-out infinite alternate;
+        radial-gradient(ellipse at 12% 5%,  rgba(99,102,241,0.22), transparent 38%),
+        radial-gradient(ellipse at 90% 15%, rgba(236,72,153,0.16), transparent 34%),
+        radial-gradient(ellipse at 65% 95%, rgba(34,211,238,0.12), transparent 36%),
+        linear-gradient(160deg, #060714 0%, #0a0f1e 50%, #080914 100%);
+    color: var(--text); min-height: 100vh; padding: 36px;
+    overflow-x: hidden;
 }
 body::before {
     content: ""; position: fixed; inset: 0;
     background-image:
-        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-    background-size: 46px 46px;
-    mask-image: linear-gradient(to bottom, rgba(0,0,0,0.82), transparent 82%);
-    pointer-events: none; z-index: 0; animation: gridMove 18s linear infinite;
+        linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px);
+    background-size: 52px 52px;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 75%);
+    pointer-events: none; z-index: 0;
+    animation: gridDrift 24s linear infinite;
 }
-.wrapper { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; animation: pageEnter 0.7s ease both; }
-.container {
-    background: linear-gradient(180deg, rgba(17,24,39,0.96) 0%, rgba(15,23,42,0.98) 100%);
-    border: 1px solid var(--line); border-radius: 18px; padding: 64px;
-    box-shadow: 0 30px 100px rgba(0,0,0,0.56), inset 0 1px 0 rgba(255,255,255,0.06);
-    backdrop-filter: blur(18px); animation: cardEnter 0.8s ease both;
-}
-.top-bar { display: flex; align-items: center; gap: 14px; margin-bottom: 48px; }
+.wrapper { position: relative; z-index: 1; max-width: 1060px; margin: 0 auto; animation: pageEnter 0.6s ease both; }
+
+/* ── Header ── */
+.header-bar { display: flex; align-items: center; gap: 16px; margin-bottom: 36px; }
 .logo {
-    width: 46px; height: 46px; border-radius: 8px; flex-shrink: 0;
+    width: 48px; height: 48px; border-radius: 10px; flex-shrink: 0;
     background: linear-gradient(135deg, var(--primary), var(--purple));
-    position: relative; animation: logoPulse 3s ease-in-out infinite;
+    position: relative; box-shadow: 0 0 32px rgba(99,102,241,0.35);
+    animation: logoPulse 3.2s ease-in-out infinite;
 }
-.logo::after { content: ""; position: absolute; inset: 11px; border: 2px solid white; border-radius: 4px; }
-.brand-title { font-weight: 700; font-size: 15px; }
-.system-label { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; color: #6b7280; }
-.report-title { font-size: 42px; font-weight: 800; letter-spacing: -1.4px; margin-bottom: 10px; word-break: break-all; }
-.report-meta { color: var(--sub); font-size: 15px; line-height: 1.7; }
-.section { margin-top: 44px; animation: fadeUp 0.7s ease both; }
-.section-title { font-size: 20px; font-weight: 800; margin-bottom: 18px; color: var(--text); letter-spacing: -0.3px; }
-.trust-card {
-    background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.22);
-    border-left: 4px solid var(--primary); border-radius: 12px;
-    padding: 32px; text-align: center; color: #c7d2fe;
+.logo::after { content: ""; position: absolute; inset: 12px; border: 2.5px solid rgba(255,255,255,0.9); border-radius: 4px; }
+.header-text .brand { font-weight: 800; font-size: 16px; letter-spacing: -0.2px; }
+.header-text .system { font-size: 10px; font-weight: 700; letter-spacing: 0.22em; color: #6b7280; margin-top: 2px; }
+
+/* ── Domain hero ── */
+.hero {
+    background: linear-gradient(135deg, rgba(17,24,39,0.97) 0%, rgba(13,19,36,0.99) 100%);
+    border: 1px solid rgba(99,102,241,0.18);
+    border-radius: 20px; padding: 44px 52px; margin-bottom: 28px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px); animation: heroEnter 0.7s ease both;
+    position: relative; overflow: hidden;
 }
-.trust-score { font-size: 56px; font-weight: 900; margin: 12px 0; color: #fff; }
-.trust-level { color: var(--sub); font-size: 17px; }
-.score-breakdown { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 22px; }
-.score-item {
-    background: rgba(11,18,32,0.86); border: 1px solid var(--line);
-    border-radius: 10px; padding: 20px; text-align: center; transition: 0.22s ease;
+.hero::before {
+    content: ""; position: absolute; top: -60px; right: -60px;
+    width: 260px; height: 260px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(99,102,241,0.12), transparent 70%);
+    pointer-events: none;
 }
-.score-item:hover { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.08); transform: translateY(-2px); }
-.score-item-value { font-size: 32px; font-weight: 900; color: #c7d2fe; }
-.score-item-label { font-size: 12px; color: var(--muted); margin-top: 6px; }
-.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.hero-label { font-size: 11px; font-weight: 700; letter-spacing: 0.22em; color: #818cf8; margin-bottom: 14px; }
+.hero-domain { font-size: 34px; font-weight: 900; letter-spacing: -1px; color: #f8fafc; word-break: break-all; margin-bottom: 8px; }
+.hero-meta { font-size: 14px; color: var(--muted); }
+
+/* ── Summary strip ── */
+.summary-strip {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px;
+    animation: fadeUp 0.7s ease both; animation-delay: 0.1s;
+}
+.stat-card {
+    background: var(--card-bg); border: 1px solid var(--line);
+    border-radius: 14px; padding: 22px 20px; text-align: center;
+    transition: 0.22s ease; position: relative; overflow: hidden;
+}
+.stat-card::after {
+    content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+    border-radius: 0 0 14px 14px;
+}
+.stat-card.accent-indigo::after  { background: linear-gradient(90deg, var(--primary), var(--purple)); }
+.stat-card.accent-cyan::after    { background: linear-gradient(90deg, var(--cyan), #38bdf8); }
+.stat-card.accent-green::after   { background: linear-gradient(90deg, var(--green), #34d399); }
+.stat-card.accent-red::after     { background: linear-gradient(90deg, var(--danger), #f87171); }
+.stat-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.16); box-shadow: 0 12px 36px rgba(0,0,0,0.35); }
+.stat-value { font-size: 22px; font-weight: 900; color: #f1f5f9; margin-bottom: 5px; }
+.stat-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--muted); }
+
+/* ── Section card ── */
+.section {
+    background: var(--card-bg); border: 1px solid var(--line);
+    border-radius: 16px; padding: 32px 36px; margin-bottom: 18px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.28);
+    backdrop-filter: blur(16px); animation: fadeUp 0.6s ease both;
+    transition: 0.22s ease;
+}
+.section:hover { box-shadow: 0 14px 48px rgba(0,0,0,0.38); }
+.section-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 22px; padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+}
+.section-icon {
+    width: 36px; height: 36px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+}
+.icon-ai      { background: rgba(99,102,241,0.15); }
+.icon-access  { background: rgba(34,211,238,0.12); }
+.icon-index   { background: rgba(139,92,246,0.15); }
+.icon-cat     { background: rgba(16,185,129,0.12); }
+.icon-coda    { background: rgba(239,68,68,0.12); }
+.section-title { font-size: 16px; font-weight: 800; color: #e2e8f0; letter-spacing: -0.2px; }
+.section-subtitle { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+/* ── Info grid ── */
+.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.info-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
 .info-box {
-    background: rgba(11,18,32,0.86); border: 1px solid var(--line);
-    border-left: 4px solid var(--primary); border-radius: 8px;
-    padding: 18px; margin-top: 12px; transition: 0.22s ease;
+    background: rgba(8,12,28,0.7); border: 1px solid var(--line);
+    border-radius: 10px; padding: 16px 18px; transition: 0.2s ease;
 }
-.info-box:hover { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.08); }
-.info-box-title { font-weight: 800; color: #c7d2fe; margin-bottom: 7px; font-size: 12px; letter-spacing: 0.05em; }
-.info-box-content { font-size: 14px; color: #d1d5db; word-break: break-all; }
-.status-badge { display: inline-flex; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; margin-right: 6px; }
-.status-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); color: #86efac; }
-.status-danger  { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.2);  color: #fca5a5; }
-.status-warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #fcd34d; }
-.analysis-section {
-    background: rgba(11,18,32,0.86); border: 1px solid var(--line);
-    border-radius: 10px; padding: 22px;
+.info-box:hover { border-color: rgba(99,102,241,0.3); background: rgba(99,102,241,0.06); }
+.info-box.full { grid-column: 1 / -1; }
+.info-key { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; color: #818cf8; margin-bottom: 7px; text-transform: uppercase; }
+.info-val { font-size: 14px; color: #cbd5e1; word-break: break-all; line-height: 1.5; }
+.info-val.large { font-size: 24px; font-weight: 900; color: #f1f5f9; }
+.info-val.code { font-family: 'Consolas', monospace; font-size: 12px; }
+
+/* ── Badges ── */
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; }
+.badge-success { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); color: #6ee7b7; }
+.badge-danger  { background: rgba(239,68,68,0.12);  border: 1px solid rgba(239,68,68,0.25);  color: #fca5a5; }
+.badge-warning { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.25); color: #fcd34d; }
+.badge-info    { background: rgba(34,211,238,0.1);  border: 1px solid rgba(34,211,238,0.2);  color: #67e8f9; }
+.badge-neutral { background: rgba(100,116,139,0.15); border: 1px solid rgba(100,116,139,0.25); color: #94a3b8; }
+.badge::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+/* ── Table ── */
+.data-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.data-table th, .data-table td { padding: 13px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.055); font-size: 13px; }
+.data-table thead tr { background: rgba(99,102,241,0.12); }
+.data-table th { font-weight: 800; color: #c7d2fe; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+.data-table td { color: #cbd5e1; }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover { background: rgba(99,102,241,0.06); }
+
+/* ── Chart ── */
+.chart-wrap {
+    margin-top: 18px; border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--line);
+    background: rgba(8,12,28,0.7);
 }
-.analysis-text { white-space: pre-wrap; font-family: Consolas, monospace; font-size: 13px; line-height: 1.8; color: #d1d5db; }
-.chart-container {
-    text-align: center; margin-top: 18px;
-    background: rgba(11,18,32,0.86); border: 1px solid var(--line);
-    border-radius: 10px; padding: 20px;
-}
-.chart-container img { max-width: 100%; height: auto; border-radius: 8px; }
-table { width: 100%; border-collapse: collapse; margin-top: 10px; border-radius: 10px; overflow: hidden; }
-th, td { padding: 14px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.07); font-size: 14px; }
-thead { background: rgba(99,102,241,0.22); }
-th { font-weight: 800; color: #e5e7eb; }
-td { color: #d1d5db; }
-tbody tr { transition: 0.2s; }
-tbody tr:hover { background: rgba(99,102,241,0.08); }
+.chart-label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); padding: 14px 18px 0; text-transform: uppercase; }
+.chart-wrap img { display: block; width: 100%; height: auto; padding: 8px 12px 12px; }
+
+/* ── Warn box ── */
 .warn-box {
-    background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2);
-    border-left: 4px solid #f59e0b; border-radius: 8px;
-    padding: 18px; margin-top: 12px; color: #fcd34d;
+    background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.2);
+    border-left: 4px solid var(--amber); border-radius: 10px;
+    padding: 16px 18px; color: #fde68a; font-size: 14px; margin-top: 14px;
 }
-.coda-badge-uncertain {
-    background: rgba(245,158,11,0.08); border-left-color: #f59e0b !important;
-}
-.footer { margin-top: 52px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; text-align: center; }
-@keyframes pageEnter { from { opacity:0; transform: translateY(18px) scale(0.985); } to { opacity:1; transform: translateY(0) scale(1); } }
-@keyframes cardEnter  { from { opacity:0; transform: translateY(24px); } to { opacity:1; transform: translateY(0); } }
-@keyframes fadeUp     { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform: translateY(0); } }
-@keyframes bgMove     { from { background-position: 0% 0%; } to { background-position: 20px 30px; } }
-@keyframes gridMove   { from { background-position: 0 0; } to { background-position: 46px 46px; } }
-@keyframes logoPulse  { 0%,100% { box-shadow: 0 0 0 rgba(99,102,241,0); } 50% { box-shadow: 0 0 28px rgba(99,102,241,0.45); } }
+
+/* ── Scrollable list ── */
+.scroll-list { max-height: 200px; overflow-y: auto; padding-right: 4px; }
+.scroll-list::-webkit-scrollbar { width: 4px; }
+.scroll-list::-webkit-scrollbar-track { background: transparent; }
+.scroll-list::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.4); border-radius: 4px; }
+.url-item { font-size: 12px; color: #818cf8; font-family: monospace; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.url-item:last-child { border-bottom: none; }
+
+/* ── Footer ── */
+.footer { margin-top: 44px; padding: 20px 0; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.footer-brand { font-size: 13px; font-weight: 700; color: var(--muted); }
+.footer-ts { font-size: 12px; color: #374151; }
+
+/* ── Animations ── */
+@keyframes pageEnter { from { opacity:0; transform: translateY(20px) scale(0.988); } to { opacity:1; transform: none; } }
+@keyframes heroEnter { from { opacity:0; transform: translateY(28px); } to { opacity:1; transform: none; } }
+@keyframes fadeUp    { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: none; } }
+@keyframes gridDrift { from { background-position: 0 0; } to { background-position: 52px 52px; } }
+@keyframes logoPulse { 0%,100% { box-shadow: 0 0 18px rgba(99,102,241,0.2); } 50% { box-shadow: 0 0 40px rgba(99,102,241,0.5); } }
+
 @media (max-width: 768px) {
     body { padding: 18px; }
-    .container { padding: 32px 20px; }
-    .report-title { font-size: 28px; }
-    .score-breakdown, .info-grid { grid-template-columns: 1fr; }
+    .hero { padding: 28px 24px; }
+    .hero-domain { font-size: 22px; }
+    .summary-strip { grid-template-columns: repeat(2, 1fr); }
+    .section { padding: 22px 20px; }
+    .info-grid, .info-grid.cols-3 { grid-template-columns: 1fr; }
 }
 </style>
 """
@@ -203,8 +306,9 @@ class AgentReportGenerator:
                 )
             cat_scores = category_result.get('category_scores', {})
             if cat_scores:
+                ko_scores = {_KO_CATEGORY.get(k, k.replace('_', ' ').title()): v for k, v in cat_scores.items()}
                 charts['category'] = self._create_bar_chart(
-                    data=cat_scores,
+                    data=ko_scores,
                     title='사이트 유형 분류 점수',
                     color='#6366f1'
                 )
@@ -214,8 +318,8 @@ class AgentReportGenerator:
 
     def _save_chart(self, fig) -> str:
         buf = BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight', dpi=120,
-                    facecolor='#111827', edgecolor='none')
+        plt.savefig(buf, format='png', bbox_inches='tight', dpi=130,
+                    facecolor='#080c1c', edgecolor='none')
         buf.seek(0)
         result = base64.b64encode(buf.read()).decode('utf-8')
         plt.close(fig)
@@ -226,38 +330,41 @@ class AgentReportGenerator:
             labels = list(data.keys())
             values = [v * 100 if v <= 1.0 else float(v) for v in data.values()]
 
-            fig_h = max(3, len(labels) * 0.6)
-            fig, ax = plt.subplots(figsize=(8, fig_h))
-            fig.patch.set_facecolor('#111827')
-            ax.set_facecolor('#111827')
+            fig_h = max(3.2, len(labels) * 0.65)
+            fig, ax = plt.subplots(figsize=(8.5, fig_h))
+            fig.patch.set_facecolor('#080c1c')
+            ax.set_facecolor('#080c1c')
 
-            bars = ax.barh(labels, values, color=color, alpha=0.82, height=0.55)
+            # gradient-like bars using alpha variation
+            bar_colors = [color] * len(labels)
+            bars = ax.barh(labels, values, color=bar_colors, alpha=0.78,
+                           height=0.52, edgecolor='none')
 
+            # value labels
             for bar, val in zip(bars, values):
-                ax.text(bar.get_width() + 0.8, bar.get_y() + bar.get_height() / 2,
-                        f'{val:.1f}%', va='center', ha='left', color='#f9fafb',
-                        fontsize=10, fontweight='bold')
+                ax.text(bar.get_width() + 1.2, bar.get_y() + bar.get_height() / 2,
+                        f'{val:.1f}%', va='center', ha='left',
+                        color='#e2e8f0', fontsize=10, fontweight='bold')
 
-            ax.set_xlim(0, 115)
-            ax.set_xlabel('%', color='#9ca3af', fontsize=10, fontweight='bold')
-            ax.set_title(title, color='#f9fafb', fontsize=12, fontweight='bold', pad=12)
+            ax.set_xlim(0, 118)
+            ax.set_xlabel('%', color='#64748b', fontsize=10, fontweight='bold')
+            ax.set_title(title, color='#e2e8f0', fontsize=12, fontweight='bold', pad=14)
 
-            # tick labels — set_yticklabels/set_xticklabels 직접 지정해야 bold 반영됨
             ax.set_yticks(range(len(labels)))
-            ax.set_yticklabels(labels, fontsize=10, fontweight='bold', color='#f9fafb')
+            ax.set_yticklabels(labels, fontsize=10, fontweight='bold', color='#cbd5e1')
             x_ticks = ax.get_xticks()
             ax.set_xticks(x_ticks)
-            ax.set_xticklabels(
-                [f'{int(t)}' for t in x_ticks],
-                fontsize=9, fontweight='bold', color='#9ca3af'
-            )
+            ax.set_xticklabels([f'{int(t)}' for t in x_ticks],
+                               fontsize=9, fontweight='bold', color='#64748b')
+
             for spine in ('top', 'right'):
                 ax.spines[spine].set_visible(False)
-            ax.spines['bottom'].set_color('#374151')
-            ax.spines['left'].set_color('#374151')
-            ax.xaxis.label.set_color('#9ca3af')
-            ax.yaxis.label.set_color('#9ca3af')
-            fig.tight_layout()
+            ax.spines['bottom'].set_color('#1e293b')
+            ax.spines['left'].set_color('#1e293b')
+            ax.xaxis.grid(True, color='#1e293b', linewidth=0.6, linestyle='--')
+            ax.set_axisbelow(True)
+
+            fig.tight_layout(pad=1.2)
             return self._save_chart(fig)
         except Exception as e:
             logger.error(f"막대 차트 오류: {e}")
@@ -269,173 +376,238 @@ class AgentReportGenerator:
         accessibility = analysis_result.get('accessibility', {})
         indexing = analysis_result.get('indexing', {})
         html_collected = analysis_result.get('html_collected', False)
+        category_result = category_result or {}
 
         def badge(ok, yes='접근 가능', no='접근 불가'):
-            cls = 'status-success' if ok else 'status-danger'
-            return f'<span class="status-badge {cls}">{yes if ok else no}</span>'
+            cls = 'badge-success' if ok else 'badge-danger'
+            return f'<span class="badge {cls}">{yes if ok else no}</span>'
 
         now = datetime.now()
-        ts = now.strftime('%Y년 %m월 %d일 %H:%M:%S')
+        ts  = now.strftime('%Y년 %m월 %d일 %H:%M:%S')
         ts_f = now.strftime('%Y-%m-%d %H:%M:%S')
+
+        # ── summary strip values
+        is_accessible = accessibility.get('is_accessible', False)
+        access_label  = '접근 가능' if is_accessible else '접근 불가'
+        access_cls    = 'accent-cyan'
+
+        risk = (llm_result or {}).get('risk_level', '—') if llm_result and llm_result.get('success') else '—'
+        risk_cls_map  = {'낮음': 'accent-green', '중간': 'accent-indigo', '높음': 'accent-red', '매우높음': 'accent-red'}
+        risk_strip_cls = risk_cls_map.get(risk, 'accent-indigo')
+
+        raw_primary = category_result.get('primary_category', '')
+        primary_ko  = _KO_CATEGORY.get(raw_primary, raw_primary.replace('_', ' ').title()) if raw_primary else '—'
+
+        coda_cat = coda_result.get('category', '').title() if coda_result.get('available') else '—'
+        coda_ko  = _KO_CODA.get(coda_cat, coda_cat) if coda_cat != '—' else '—'
 
         h = f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>분석 보고서 - {domain}</title>
+<title>분석 보고서 — {domain}</title>
 {CSS}
 </head>
 <body>
-<div class="wrapper"><div class="container">
+<div class="wrapper">
 
-<div class="top-bar">
+<div class="header-bar">
   <div class="logo"></div>
-  <div>
-    <div class="brand-title">Darkweb Analyzer</div>
-    <div class="system-label">SECURITY ANALYSIS SYSTEM</div>
+  <div class="header-text">
+    <div class="brand">Darkweb Analyzer</div>
+    <div class="system">SECURITY ANALYSIS SYSTEM</div>
   </div>
 </div>
 
-<div class="report-title">{domain}</div>
-<div class="report-meta">생성 일시: {ts}</div>
+<div class="hero">
+  <div class="hero-label">ANALYSIS REPORT</div>
+  <div class="hero-domain">{domain}</div>
+  <div class="hero-meta">생성 일시: {ts}</div>
+</div>
 """
 
-        # 경고
+        # ── warning
         if analysis_result.get('analysis_warning'):
-            h += f'<div class="warn-box" style="margin-top:24px;">⚠️ {analysis_result["analysis_warning"]}</div>'
+            h += f'<div class="warn-box">&#9888; {analysis_result["analysis_warning"]}</div>'
 
-        # LLM 분석 (최상단)
-        if llm_result and llm_result.get('success'):
-            risk = llm_result.get('risk_level', '')
-            risk_cls = {'낮음': 'status-success', '중간': 'status-warning', '높음': 'status-danger', '매우높음': 'status-danger'}.get(risk, '')
-            features = llm_result.get('notable_features', [])
-            features_html = ('<ul style="margin:8px 0 0 16px;">' + ''.join(f'<li style="font-size:13px;margin-bottom:4px;">{f}</li>' for f in features) + '</ul>') if features else ''
-            h += f"""
-<div class="section">
-  <div class="section-title">AI 사이트 분석</div>
-  <div class="info-grid">
-    <div class="info-box"><div class="info-box-title">사이트 유형</div><div class="info-box-content">{llm_result.get('site_type') or '-'}</div></div>
-    <div class="info-box"><div class="info-box-title">주요 언어</div><div class="info-box-content">{llm_result.get('language') or '-'}</div></div>
+        # ── summary strip
+        h += f"""
+<div class="summary-strip">
+  <div class="stat-card {access_cls}">
+    <div class="stat-value">{access_label}</div>
+    <div class="stat-label">접근성</div>
   </div>
-  <div class="info-box"><div class="info-box-title">목적</div><div class="info-box-content">{llm_result.get('purpose') or '-'}</div></div>
-  <div class="info-box"><div class="info-box-title">요약</div><div class="info-box-content">{llm_result.get('summary') or '-'}</div></div>
-  <div class="info-box"><div class="info-box-title">AI 위험도 평가</div><div class="info-box-content"><span class="status-badge {risk_cls}">{risk}</span> {llm_result.get('risk_reason') or ''}</div></div>
-  {f'<div class="info-box"><div class="info-box-title">주목할 특징</div><div class="info-box-content">{features_html}</div></div>' if features_html else ''}
-  <div style="font-size:11px;color:var(--muted);margin-top:10px;">모델: {llm_result.get('model_used') or ''}</div>
+  <div class="stat-card {risk_strip_cls}">
+    <div class="stat-value">{risk}</div>
+    <div class="stat-label">AI 위험도</div>
+  </div>
+  <div class="stat-card accent-green">
+    <div class="stat-value" style="font-size:16px;">{primary_ko}</div>
+    <div class="stat-label">사이트 유형</div>
+  </div>
+  <div class="stat-card accent-red">
+    <div class="stat-value" style="font-size:16px;">{coda_ko}</div>
+    <div class="stat-label">CoDA 분류</div>
+  </div>
+</div>
+"""
+
+        # ── AI 분석
+        if llm_result and llm_result.get('success'):
+            risk_badge_cls = {'낮음': 'badge-success', '중간': 'badge-warning', '높음': 'badge-danger', '매우높음': 'badge-danger'}.get(risk, 'badge-neutral')
+            features = llm_result.get('notable_features', [])
+            feat_html = ('<ul style="list-style:none;margin-top:8px;">' +
+                         ''.join(f'<li style="padding:4px 0;font-size:13px;color:#94a3b8;border-bottom:1px solid rgba(255,255,255,0.05);">'
+                                 f'<span style="color:#818cf8;margin-right:8px;">&#9656;</span>{f}</li>' for f in features) +
+                         '</ul>') if features else ''
+            h += f"""
+<div class="section" style="animation-delay:0.15s">
+  <div class="section-header">
+    <div class="section-icon icon-ai">&#129302;</div>
+    <div>
+      <div class="section-title">AI 사이트 분석</div>
+      <div class="section-subtitle">모델: {llm_result.get('model_used','')}</div>
+    </div>
+  </div>
+  <div class="info-grid cols-3">
+    <div class="info-box"><div class="info-key">사이트 유형</div><div class="info-val">{llm_result.get('site_type') or '—'}</div></div>
+    <div class="info-box"><div class="info-key">주요 언어</div><div class="info-val">{llm_result.get('language') or '—'}</div></div>
+    <div class="info-box"><div class="info-key">AI 위험도</div><div class="info-val"><span class="badge {risk_badge_cls}">{risk}</span></div></div>
+    <div class="info-box full"><div class="info-key">목적</div><div class="info-val">{llm_result.get('purpose') or '—'}</div></div>
+    <div class="info-box full"><div class="info-key">요약</div><div class="info-val">{llm_result.get('summary') or '—'}</div></div>
+    <div class="info-box full"><div class="info-key">위험도 근거</div><div class="info-val">{llm_result.get('risk_reason') or '—'}</div></div>
+    {f'<div class="info-box full"><div class="info-key">주목할 특징</div><div class="info-val">{feat_html}</div></div>' if feat_html else ''}
+  </div>
 </div>
 """
         elif llm_result and not llm_result.get('success'):
             err = llm_result.get('error', '')
             if err not in ('HTML 미수집', 'API 키 미설정'):
-                h += f'<div class="section"><div class="section-title">AI 사이트 분석</div><div class="info-box"><div class="info-box-content">분석 실패: {err}</div></div></div>'
-
-        # 접근성
-        response_time = round(accessibility.get('response_time') or 0, 2)
-        h += f"""
+                h += f"""
 <div class="section">
-  <div class="section-title">접근성 정보</div>
-  <div class="info-grid">
-    <div class="info-box"><div class="info-box-title">HTML 수집</div><div class="info-box-content">{badge(html_collected, '수집됨', '미수집')}</div></div>
-    <div class="info-box"><div class="info-box-title">HTTP 상태</div><div class="info-box-content">{accessibility.get('status_code','N/A')} {badge(accessibility.get('is_accessible'))}</div></div>
-    <div class="info-box"><div class="info-box-title">응답 시간</div><div class="info-box-content">{response_time}초</div></div>
+  <div class="section-header"><div class="section-icon icon-ai">&#129302;</div><div class="section-title">AI 사이트 분석</div></div>
+  <div class="warn-box">분석 실패: {err}</div>
+</div>
+"""
+
+        # ── 접근성
+        response_time = round(accessibility.get('response_time') or 0, 2)
+        status_code   = accessibility.get('status_code', 'N/A')
+        h += f"""
+<div class="section" style="animation-delay:0.2s">
+  <div class="section-header">
+    <div class="section-icon icon-access">&#127760;</div>
+    <div><div class="section-title">접근성 정보</div><div class="section-subtitle">Tor 네트워크 경유 접속 결과</div></div>
   </div>
+  <div class="info-grid cols-3">
+    <div class="info-box"><div class="info-key">접근 상태</div><div class="info-val">{badge(is_accessible)}</div></div>
+    <div class="info-box"><div class="info-key">HTTP 상태코드</div><div class="info-val large">{status_code}</div></div>
+    <div class="info-box"><div class="info-key">HTML 수집</div><div class="info-val">{badge(html_collected, '수집됨', '미수집')}</div></div>
 """
         if accessibility.get('fallback_domain'):
-            h += f'<div class="info-box"><div class="info-box-title">재검증</div><div class="info-box-content">{accessibility["fallback_domain"]} {badge(accessibility.get("fallback_accessible"), "성공", "실패")}</div></div>'
-        h += '</div>'
+            h += f'<div class="info-box"><div class="info-key">재검증 도메인</div><div class="info-val code">{accessibility["fallback_domain"]}</div></div>'
+            h += f'<div class="info-box"><div class="info-key">재검증 결과</div><div class="info-val">{badge(accessibility.get("fallback_accessible"), "성공", "실패")}</div></div>'
+        h += '  </div>\n</div>'
 
-        # 검색 색인
-        ahmia_b = badge(indexing.get('ahmia_found'), '검색됨', '미발견')
-        ddgo_b  = badge(indexing.get('duckduckgo_found'), '검색됨', '미발견')
+        # ── 검색 색인
+        ahmia_b = badge(indexing.get('ahmia_found'), '색인됨', '미발견')
+        ddgo_b  = badge(indexing.get('duckduckgo_found'), '색인됨', '미발견')
+        extracted_urls  = indexing.get('extracted_urls', [])
+        onion_in_page   = self._extract_onion_domains(analysis_result.get('html_content', '')) if html_collected else []
         h += f"""
-<div class="section">
-  <div class="section-title">검색 색인 정보</div>
-  <table>
-    <thead><tr><th>엔진</th><th>상태</th><th>결과</th></tr></thead>
+<div class="section" style="animation-delay:0.25s">
+  <div class="section-header">
+    <div class="section-icon icon-index">&#128269;</div>
+    <div><div class="section-title">검색 색인 정보</div><div class="section-subtitle">다크웹 검색엔진 노출 현황</div></div>
+  </div>
+  <table class="data-table">
+    <thead><tr><th>검색 엔진</th><th>상태</th><th>결과 수</th></tr></thead>
     <tbody>
-      <tr><td>Ahmia</td><td>{ahmia_b}</td><td>{indexing.get('ahmia_results',0)}건</td></tr>
-      <tr><td>DuckDuckGo</td><td>{ddgo_b}</td><td>{'True' if indexing.get('duckduckgo_found') else 'False'}</td></tr>
+      <tr><td>Ahmia</td><td>{ahmia_b}</td><td>{indexing.get('ahmia_results', 0)}건</td></tr>
+      <tr><td>DuckDuckGo</td><td>{ddgo_b}</td><td>{'감지됨' if indexing.get('duckduckgo_found') else '미감지'}</td></tr>
     </tbody>
   </table>
 """
-        extracted_urls = indexing.get('extracted_urls', [])
         if extracted_urls:
-            urls_html = '<br>'.join(extracted_urls[:15])
-            h += f'<div class="info-box"><div class="info-box-title">상대 경로 ({len(extracted_urls)}개)</div><div class="info-box-content" style="font-size:12px;max-height:240px;overflow-y:auto;">{urls_html}</div></div>'
-
-        if html_collected:
-            onion_domains = self._extract_onion_domains(analysis_result.get('html_content', ''))
-            if onion_domains:
-                h += f'<div class="info-box"><div class="info-box-title">페이지 내 .onion 도메인 ({len(onion_domains)}개)</div><div class="info-box-content" style="font-size:12px;">' + '<br>'.join(onion_domains) + '</div></div>'
+            urls_items = ''.join(f'<div class="url-item">{u}</div>' for u in extracted_urls[:20])
+            h += f'<div class="info-box full" style="margin-top:14px;"><div class="info-key">상대 경로 ({len(extracted_urls)}개)</div><div class="scroll-list" style="margin-top:6px;">{urls_items}</div></div>'
+        if onion_in_page:
+            onion_items = ''.join(f'<div class="url-item">{d}</div>' for d in onion_in_page)
+            h += f'<div class="info-box full" style="margin-top:10px;"><div class="info-key">페이지 내 .onion 도메인 ({len(onion_in_page)}개)</div><div class="scroll-list" style="margin-top:6px;">{onion_items}</div></div>'
         h += '</div>'
 
-        # 사이트 유형 분류 (BART)
-        category_result = category_result or {}
-        h += '<div class="section"><div class="section-title">사이트 유형 분류</div>'
+        # ── 사이트 유형 분류
+        h += """
+<div class="section" style="animation-delay:0.3s">
+  <div class="section-header">
+    <div class="section-icon icon-cat">&#128203;</div>
+    <div><div class="section-title">사이트 유형 분류</div><div class="section-subtitle">BART 제로샷 분류 모델</div></div>
+  </div>
+"""
         if not html_collected:
-            h += '<div class="info-box"><div class="info-box-content">HTML 미수집으로 분석을 수행하지 않았습니다.</div></div>'
+            h += '<div class="warn-box">HTML 미수집으로 분류를 수행하지 않았습니다.</div>'
         elif category_result.get('skip_reason'):
-            h += '<div class="info-box"><div class="info-box-content">분류 스킵됨</div></div>'
+            h += '<div class="info-box"><div class="info-val">분류 스킵됨</div></div>'
         else:
-            primary = category_result.get('primary_category', 'unknown').replace('_', ' ').title()
-            secondary = category_result.get('secondary_category')
+            raw_secondary = category_result.get('secondary_category')
+            secondary_ko  = _KO_CATEGORY.get(raw_secondary, raw_secondary.replace('_', ' ').title()) if raw_secondary else None
             conf = round(category_result.get('confidence', 0) * 100, 1)
-            h += f'<div class="info-box"><div class="info-box-title">주요 유형</div><div class="info-box-content"><span style="font-size:18px;font-weight:900;color:#c7d2fe;">{primary}</span> &nbsp;{conf}%</div></div>'
-            if secondary:
-                h += f'<div class="info-box" style="margin-top:10px;"><div class="info-box-title">보조 유형</div><div class="info-box-content">{secondary.replace("_"," ").title()}</div></div>'
+            h += f"""
+  <div class="info-grid">
+    <div class="info-box"><div class="info-key">주요 유형</div><div class="info-val large">{primary_ko}</div></div>
+    <div class="info-box"><div class="info-key">신뢰도</div><div class="info-val large">{conf}<span style="font-size:14px;font-weight:500;color:var(--sub);">%</span></div></div>
+    {f'<div class="info-box full"><div class="info-key">보조 유형</div><div class="info-val">{secondary_ko}</div></div>' if secondary_ko else ''}
+  </div>
+"""
             if charts.get('category'):
-                cat_chart = charts['category']
-                h += f'<div class="chart-container"><img src="data:image/png;base64,{cat_chart}" alt="사이트 유형 분류 차트"></div>'
+                h += f'<div class="chart-wrap"><div class="chart-label">카테고리별 점수 분포</div><img src="data:image/png;base64,{charts["category"]}" alt="사이트 유형 차트"></div>'
         h += '</div>'
 
-        # CoDA 분류
-        h += '<div class="section"><div class="section-title">CoDA 범죄 카테고리 분류</div>'
+        # ── CoDA 분류
+        h += """
+<div class="section" style="animation-delay:0.35s">
+  <div class="section-header">
+    <div class="section-icon icon-coda">&#9888;</div>
+    <div><div class="section-title">CoDA 범죄 카테고리 분류</div><div class="section-subtitle">DarkBERT 기반 범죄 콘텐츠 분류</div></div>
+  </div>
+"""
         if not html_collected:
-            h += '<div class="info-box"><div class="info-box-content">HTML 미수집으로 분석을 수행하지 않았습니다.</div></div>'
+            h += '<div class="warn-box">HTML 미수집으로 분류를 수행하지 않았습니다.</div>'
         elif not coda_result.get('available'):
-            h += '<div class="info-box warn-box"><div class="info-box-content">⚠️ 학습된 모델 없음 — <code>python3 analyzers/train_coda_classifier.py</code> 실행 필요</div></div>'
+            h += '<div class="warn-box">&#9888; 학습된 모델 없음 — <code>python3 analyzers/train_coda_classifier.py</code> 실행 필요</div>'
         else:
-            cat = coda_result.get('category', 'unknown').upper()
-            conf = round(coda_result.get('confidence', 0) * 100, 1)
+            raw_cat   = coda_result.get('category', 'unknown').title()
+            coda_ko_s = _KO_CODA.get(raw_cat, raw_cat)
+            conf_c    = round(coda_result.get('confidence', 0) * 100, 1)
             uncertain = coda_result.get('uncertain', False)
-            uncertain_note = ' &nbsp;<span class="status-badge status-warning">⚠️ 분류 불확실</span>' if uncertain else ''
-            box_cls = 'coda-badge-uncertain' if uncertain else ''
-            h += f'<div class="info-box {box_cls}"><div class="info-box-title">분류 결과</div><div class="info-box-content"><span style="font-size:20px;font-weight:900;color:#c7d2fe;">{cat}</span> &nbsp;{conf}%{uncertain_note}</div></div>'
 
+            h += f"""
+  <div class="info-grid">
+    <div class="info-box"><div class="info-key">분류 결과</div><div class="info-val large">{coda_ko_s}</div></div>
+    <div class="info-box"><div class="info-key">신뢰도</div><div class="info-val large">{conf_c}<span style="font-size:14px;font-weight:500;color:var(--sub);">%</span></div></div>
+    {('<div class="info-box full"><div class="info-key">주의</div><div class="info-val"><span class="badge badge-warning">분류 불확실</span> 결과 해석 시 주의 필요</div></div>') if uncertain else ''}
+  </div>
+"""
             all_probs = coda_result.get('all_probs', {})
             if all_probs:
-                probs_html = ' &nbsp;|&nbsp; '.join(
-                    f'<b>{k.upper()}</b>: {round(v*100,1)}%'
-                    for k, v in list(all_probs.items())[:5]
+                top5 = list(all_probs.items())[:5]
+                prob_items = ' &nbsp;·&nbsp; '.join(
+                    f'<b style="color:#e2e8f0;">{_KO_CODA.get(k.title(), k)}</b> <span style="color:#818cf8;">{round(v*100,1)}%</span>'
+                    for k, v in top5
                 )
-                h += f'<div class="info-box" style="margin-top:10px;"><div class="info-box-title">상위 5개 확률</div><div class="info-box-content" style="font-size:13px;">{probs_html}</div></div>'
+                h += f'<div class="info-box full" style="margin-top:12px;"><div class="info-key">상위 확률 분포</div><div class="info-val" style="font-size:13px;line-height:2;">{prob_items}</div></div>'
             if charts.get('coda'):
-                coda_chart = charts['coda']
-                h += f'<div class="chart-container"><img src="data:image/png;base64,{coda_chart}" alt="CoDA 범죄 카테고리 차트"></div>'
+                h += f'<div class="chart-wrap"><div class="chart-label">범죄 카테고리별 확률 분포</div><img src="data:image/png;base64,{charts["coda"]}" alt="CoDA 차트"></div>'
         h += '</div>'
 
-        # 결론
-        coda_summary = ''
-        if coda_result and coda_result.get('available'):
-            uncertain_txt = ' (불확실)' if coda_result.get('uncertain') else ''
-            coda_summary = f'<p><strong>CoDA 분류:</strong> {coda_result.get("category","unknown").upper()}{uncertain_txt}</p>'
-
         h += f"""
-<div class="section">
-  <div class="section-title">조사 결론</div>
-  <div class="analysis-section">
-    <p><strong>도메인:</strong> {domain}</p>
-    <p><strong>접근성:</strong> {'가능' if accessibility.get('is_accessible') else '불가'}</p>
-    <p><strong>HTML 수집:</strong> {'수집됨' if html_collected else '미수집'}</p>
-    <p><strong>색인 상태:</strong> {'공개' if indexing.get('combined_found') else '은닉'}</p>
-    {coda_summary}
-  </div>
+<div class="footer">
+  <div class="footer-brand">Darkweb Analyzer</div>
+  <div class="footer-ts">자동 생성 &nbsp;|&nbsp; {ts_f}</div>
 </div>
 
-<div class="footer">자동 생성 | {ts_f}</div>
-
-</div></div>
+</div>
 </body></html>
 """
         return h
