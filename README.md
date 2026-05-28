@@ -88,8 +88,7 @@ web/app.py  →  agent.py
       analyzers/
         ├── coda_classifier.py   # DarkBERT + LR 분류기
         ├── category_classifier.py  # BART zero-shot 사이트 유형 분류
-        ├── llm_analyzer.py      # OpenAI API 요약 (GPT-4o-mini)
-        └── trust_scorer.py      # 신뢰도 계산
+        └── llm_analyzer.py      # OpenAI API 요약 (GPT-4o-mini)
                   ↓
       reporters/agent_report_generator.py  →  HTML 보고서
 ```
@@ -102,12 +101,12 @@ web/app.py  →  agent.py
 
 | 항목 | 설명 |
 |------|------|
-| AI 사이트 분석 | OpenAI API (GPT-4o-mini) 기반 목적·요약·위험도 분석 (API 키 필요) |
-| 접근성 정보 | HTTP 상태코드, 응답 시간, HTML 수집 여부 |
+| 요약 카드 | 접근성·AI 위험도·사이트 유형·CoDA 분류 4가지 핵심 정보 한눈에 |
+| AI 사이트 분석 | GPT-4o-mini 기반 목적·요약·위험도·특징 분석 (API 키 필요) |
+| 접근성 정보 | HTTP 상태코드, HTML 수집 여부 |
 | 검색 색인 정보 | Ahmia·DuckDuckGo 등재 여부 및 결과 수 |
-| 사이트 유형 분류 | BART 기반 포럼·마켓플레이스·블로그 등 분류 (막대 그래프) |
-| CoDA 범죄 카테고리 | DarkBERT 기반 9개 범죄 카테고리 분류 (막대 그래프) |
-| 조사 결론 | 접근성·색인 상태·CoDA 분류 결과 종합 요약 |
+| 사이트 유형 분류 | BART 기반 포럼·마켓플레이스·블로그 등 분류 — 카테고리 한국어 표기 |
+| CoDA 범죄 카테고리 | DarkBERT 기반 9개 범죄 카테고리 분류 (영문 레이블 막대 그래프) |
 
 ---
 
@@ -154,10 +153,10 @@ sudo apt install tor && sudo service tor start
 python3 server/app.py
 
 # 터미널 2 - 웹 UI (포트 8080)
-python3 launcher.py 2
+python3 web/app.py
 ```
 
-> `launcher.py`는 `.env` 파일을 자동으로 로드합니다. `web/app.py`를 직접 실행하면 `.env`가 로드되지 않을 수 있습니다.
+> 두 서버가 **동시에 실행 중**이어야 분석이 동작합니다. 종료 시 반드시 `Ctrl+C`를 사용하세요 (창을 그냥 닫으면 백그라운드에 프로세스가 남아 포트 충돌이 발생합니다).
 
 **4. 브라우저 접속**
 
@@ -222,8 +221,7 @@ darkweb_crawler/
 │   ├── coda_classifier.py          # CoDA 추론 모듈
 │   ├── category_classifier.py      # BART 사이트 유형 분류
 │   ├── train_coda_classifier.py    # 분류기 학습 스크립트
-│   ├── llm_analyzer.py             # OpenAI API 분석 (GPT-4o-mini)
-│   └── trust_scorer.py             # 신뢰도 계산
+│   └── llm_analyzer.py             # OpenAI API 분석 (GPT-4o-mini)
 ├── reporters/
 │   └── agent_report_generator.py  # HTML 보고서 생성
 └── requirements.txt
@@ -234,6 +232,6 @@ darkweb_crawler/
 ## 주의사항
 
 - 이 도구는 **보안 연구 목적**으로 개발되었습니다.
-- 실행 시 Tor 브라우저 또는 Tor 서비스가 실행 중이어야 합니다 (SOCKS5 포트 9150).
+- 실행 시 Tor 서비스가 실행 중이어야 합니다 (macOS: `brew services start tor`, SOCKS5 포트 9050).
 - 학습된 모델 파일(`data/coda_classifier.pkl`, `data/coda_centroids.csv`)은 저장소에 포함되어 있습니다. 별도 학습 없이 바로 사용 가능합니다.
 - 모델을 직접 재학습하려면 S2W로부터 `processed_coda_data_final.csv` (CoDA 데이터셋)를 허가 후 수령해야 합니다. 재학습 시 `data/coda_embeddings.npz` 캐시 파일이 자동 생성됩니다.
