@@ -223,20 +223,16 @@ darkweb_crawler/
 │   ├── content_analyzer.py           # HTML 콘텐츠 분석
 │   ├── llm_analyzer.py               # OpenAI API 분석 (GPT-4o-mini)
 │   └── train_coda_classifier.py      # CoDA 분류기 학습 스크립트
-│
 ├── config/
 │   ├── config.py                     # 전역 설정 (Tor 포트, 타임아웃 등)
 │   └── forums.json                   # 포럼 분류 기준 데이터
-│
 ├── data/
 │   ├── coda_centroids.csv            # CoDA 클래스 중심 벡터
 │   ├── coda_classifier.pkl           # 학습된 분류 모델
 │   └── coda_embeddings.npz           # DarkBERT 임베딩 캐시
-│
 ├── reporters/
 │   ├── __init__.py
 │   └── agent_report_generator.py    # HTML 보고서 생성 및 시각화
-│
 ├── server/
 │   ├── __init__.py
 │   ├── app.py                        # 분석 서버 (포트 5001, Tor 크롤링)
@@ -247,19 +243,16 @@ darkweb_crawler/
 │   ├── safe_validators.py            # 접근성 검증 (Tor SOCKS5)
 │   ├── requirements.txt              # 서버 전용 의존 패키지
 │   └── setup.sh                      # 서버 초기 설정 스크립트
-│
 ├── utils/
 │   ├── __init__.py
 │   ├── forum_classifier.py           # 포럼 유형 분류 유틸
 │   ├── html_cleaner.py               # HTML 태그 제거 및 텍스트 정제
 │   └── logger.py                     # 공통 로거 설정
-│
 ├── web/
 │   ├── app.py                        # 웹 UI 서버 (포트 8080)
 │   └── templates/
 │       ├── index.html                # 메인 페이지 (도메인 입력)
 │       └── result.html               # 분석 결과 페이지
-│
 ├── analysis_reports/                 # 생성된 HTML 보고서 저장 (자동 생성)
 └── logs/                             # 실행 로그 저장 (자동 생성)
 ```
