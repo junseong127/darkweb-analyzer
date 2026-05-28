@@ -102,12 +102,12 @@ web/app.py  →  agent.py
 
 | 항목 | 설명 |
 |------|------|
+| AI 사이트 분석 | OpenAI API (GPT-4o-mini) 기반 목적·요약·위험도 분석 (API 키 필요) |
 | 접근성 정보 | HTTP 상태코드, 응답 시간, HTML 수집 여부 |
 | 검색 색인 정보 | Ahmia·DuckDuckGo 등재 여부 및 결과 수 |
 | 사이트 유형 분류 | BART 기반 포럼·마켓플레이스·블로그 등 분류 (막대 그래프) |
 | CoDA 범죄 카테고리 | DarkBERT 기반 9개 범죄 카테고리 분류 (막대 그래프) |
-| AI 사이트 분석 | OpenAI API (GPT-4o-mini) 기반 목적·요약·위험도 분석 (API 키 필요) |
-| 조사 결론 | 접근성·색인 상태·분류 결과 종합 요약 |
+| 조사 결론 | 접근성·색인 상태·CoDA 분류 결과 종합 요약 |
 
 ---
 
@@ -147,16 +147,7 @@ brew install tor && tor
 sudo apt install tor && sudo service tor start
 ```
 
-**3. CoDA 분류기 학습 (최초 1회, 약 20분 소요)**
-
-```bash
-python3 analyzers/train_coda_classifier.py
-```
-
-> 학습 데이터(`processed_coda_data_final.csv`)는 S2W에서 허가 후 수령한 CoDA 데이터셋입니다.  
-> 학습 완료 후 `data/coda_classifier.pkl`이 생성됩니다.
-
-**4. 서버 실행**
+**3. 서버 실행**
 
 ```bash
 # 터미널 1 - 분석 서버 (Tor 크롤링, 포트 5001)
@@ -168,7 +159,7 @@ python3 launcher.py 2
 
 > `launcher.py`는 `.env` 파일을 자동으로 로드합니다. `web/app.py`를 직접 실행하면 `.env`가 로드되지 않을 수 있습니다.
 
-**5. 브라우저 접속**
+**4. 브라우저 접속**
 
 ```
 http://localhost:8080
@@ -192,8 +183,7 @@ python3 server/app.py  # 포트 5001
 
 ```bash
 pip install -r requirements.txt
-python3 analyzers/train_coda_classifier.py  # 최초 1회
-python3 web/app.py  # 포트 8080
+python3 launcher.py 2  # 포트 8080
 ```
 
 ---
