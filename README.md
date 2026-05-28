@@ -200,7 +200,8 @@ python3 launcher.py 2  # 포트 8080
 `.env` 파일을 프로젝트 루트에 생성하세요.
 
 ```env
-OPENAI_API_KEY=your_api_key_here  # LLM 분석 기능 (선택사항)
+OPENAI_API_KEY=your_api_key_here   # LLM 분석 기능 (선택사항)
+SERVER_URL=http://127.0.0.1:5001   # Ubuntu 서버 사용 시 해당 IP로 변경 (선택사항)
 ```
 
 API 키가 없으면 LLM 분석은 스킵되고 나머지 기능은 정상 동작합니다.

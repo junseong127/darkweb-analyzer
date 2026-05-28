@@ -29,12 +29,12 @@ logger = get_logger(__name__)
 class DarkwebDomainAgent:
     """어니언 도메인 분석 에이전트"""
     
-    def __init__(self, server_url: str = "http://127.0.0.1:5001"):
+    def __init__(self, server_url: str = None):
         """
         Args:
             server_url: 우분투 서버 URL
         """
-        self.server_url = server_url
+        self.server_url = server_url or os.environ.get("SERVER_URL", "http://127.0.0.1:5001")
         self.analyzer = ContentAnalyzer()
         self.classifier = CategoryClassifier()
         self.scorer = TrustScorer()
