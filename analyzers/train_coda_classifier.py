@@ -14,7 +14,7 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-DATA_PATH   = '/Users/sinjunseong/Downloads/processed_coda_data_final.csv'
+DATA_PATH   = str(Path(__file__).parent.parent / 'data' / 'processed_coda_data_final.csv')
 MODEL_OUT   = str(Path(__file__).parent.parent / 'data' / 'coda_classifier.pkl')
 EMBED_CACHE = str(Path(__file__).parent.parent / 'data' / 'coda_embeddings.npz')
 EXCLUDE_CATEGORIES = ['Others']
