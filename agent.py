@@ -17,7 +17,7 @@ from typing import Dict
 # 부모 디렉토리를 경로에 추가
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from analyzers import ContentAnalyzer, CategoryClassifier, TrustScorer
+from analyzers import ContentAnalyzer, CategoryClassifier
 from analyzers.llm_analyzer import LLMAnalyzer
 from analyzers.coda_classifier import CoDAClassifier
 from reporters.agent_report_generator import AgentReportGenerator
@@ -37,7 +37,6 @@ class DarkwebDomainAgent:
         self.server_url = server_url or os.environ.get("SERVER_URL", "http://127.0.0.1:5001")
         self.analyzer = ContentAnalyzer()
         self.classifier = CategoryClassifier()
-        self.scorer = TrustScorer()
         self.coda_classifier = CoDAClassifier()
         self.llm_analyzer = LLMAnalyzer()
         self.report_generator = AgentReportGenerator()
@@ -137,27 +136,12 @@ class DarkwebDomainAgent:
                 logger.warning("    ⚠️ HTML 미수집 - LLM 분석 스킵")
                 llm_result = {'success': False, 'error': 'HTML 미수집'}
 
-            # 4단계: 신뢰도 계산
-            logger.info("[4/6] 📊 신뢰도 점수 계산 중...")
-            
-            # 로컬 분석 데이터와 서버 데이터 결합
-            trust_input = {
-                **server_analysis['analysis'],
-                'is_illegal': content_analysis.get('is_illegal', False),
-                'illegal_confidence': content_analysis.get('illegal_confidence', 0),
-                'primary_illegal_type': content_analysis.get('primary_illegal_type')
-            }
-            
-            trust_analysis = self.scorer.calculate_comprehensive_trust(trust_input)
-            logger.info("    ✅ 신뢰도 계산 완료")
-            
-            # 5단계: 보고서 생성
-            logger.info("[5/6] 📋 보고서 생성 중...")
+            # 4단계: 보고서 생성
+            logger.info("[4/5] 📋 보고서 생성 중...")
 
             report_path = self.report_generator.generate_report(
                 domain=domain,
                 analysis_result=server_analysis['analysis'],
-                trust_analysis=trust_analysis,
                 coda_result=coda_result,
                 llm_result=llm_result,
                 category_result=category_result
@@ -171,13 +155,12 @@ class DarkwebDomainAgent:
             result['analysis'] = {
                 'server_data': server_analysis['analysis'],
                 'coda_result': coda_result,
-                'trust_analysis': trust_analysis,
                 'llm_result': llm_result,
                 'report_path': report_path
             }
 
             # 종합 요약 출력
-            self._print_summary(domain, trust_analysis, coda_result, server_analysis['analysis'])
+            self._print_summary(domain, coda_result, server_analysis['analysis'])
             
         except Exception as e:
             logger.error(f"❌ 분석 중 오류: {str(e)}", exc_info=True)
@@ -233,23 +216,12 @@ class DarkwebDomainAgent:
             logger.error(f"❌ 서버 분석 중 오류: {str(e)}")
             return None
     
-    def _print_summary(self, domain: str, trust_analysis: Dict,
-                      coda_result: Dict, server_analysis: Dict):
+    def _print_summary(self, domain: str, coda_result: Dict, server_analysis: Dict):
         """분석 결과 요약 출력"""
-
-        trust_level_ko = {
-            'HIGHLY_TRUSTWORTHY': '매우 높음 ✅',
-            'TRUSTWORTHY': '높음 ✅',
-            'SUSPICIOUS': '중간 (의심) ⚠️',
-            'UNTRUSTED': '낮음 (위험) ❌',
-            'UNREACHABLE': '분석 불가 ❓'
-        }.get(trust_analysis['trust_level'], '알 수 없음')
-
         logger.info("="*60)
         logger.info("📊 분석 결과 요약")
         logger.info("="*60)
         logger.info(f"\n도메인: {domain}")
-        logger.info(f"신뢰도: {trust_analysis['total_score']}/100 ({trust_level_ko})")
 
         indexing = server_analysis.get('indexing', {})
         logger.info(f"\n📋 검색 색인:")

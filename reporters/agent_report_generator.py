@@ -160,7 +160,7 @@ class AgentReportGenerator:
         logger.info(f"보고서 저장 경로: {self.output_dir}")
 
     def generate_report(self, domain: str, analysis_result: Dict,
-                        trust_analysis: Dict, coda_result: Dict = None,
+                        coda_result: Dict = None,
                         llm_result: Dict = None, category_result: Dict = None) -> str:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"analysis_report_{domain.replace('.', '_')}_{timestamp}.html"
@@ -170,7 +170,6 @@ class AgentReportGenerator:
         html_content = self._generate_html(
             domain=domain,
             analysis_result=analysis_result,
-            trust_analysis=trust_analysis,
             coda_result=coda_result or {},
             charts=charts,
             llm_result=llm_result or {},
@@ -264,18 +263,12 @@ class AgentReportGenerator:
             logger.error(f"막대 차트 오류: {e}")
             return ""
 
-    def _generate_html(self, domain: str, analysis_result: Dict, trust_analysis: Dict,
+    def _generate_html(self, domain: str, analysis_result: Dict,
                        coda_result: Dict, charts: Dict, llm_result: Dict,
                        category_result: Dict = None) -> str:
         accessibility = analysis_result.get('accessibility', {})
         indexing = analysis_result.get('indexing', {})
         html_collected = analysis_result.get('html_collected', False)
-
-        trust_level_ko = {
-            'HIGHLY_TRUSTWORTHY': '매우 높음', 'TRUSTWORTHY': '높음',
-            'SUSPICIOUS': '중간 (의심)', 'UNTRUSTED': '낮음 (위험)',
-            'UNREACHABLE': '분석 불가'
-        }.get(trust_analysis.get('trust_level', ''), '알 수 없음')
 
         def badge(ok, yes='접근 가능', no='접근 불가'):
             cls = 'status-success' if ok else 'status-danger'
