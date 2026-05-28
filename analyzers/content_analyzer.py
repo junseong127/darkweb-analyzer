@@ -6,6 +6,8 @@ import re
 import logging
 import importlib
 import os
+
+from utils.html_cleaner import HTMLCleaner
 from pathlib import Path
 from typing import Dict, List, Tuple
 

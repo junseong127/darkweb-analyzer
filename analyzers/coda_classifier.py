@@ -3,7 +3,6 @@ CoDA 분류기 추론 모듈
 학습된 DarkBERT + LogisticRegression 모델로 범죄 카테고리 분류
 """
 
-import re
 import logging
 import importlib
 import os
@@ -11,6 +10,8 @@ from pathlib import Path
 from typing import Dict, Optional
 
 import numpy as np
+
+from utils.html_cleaner import HTMLCleaner
 
 logger = logging.getLogger(__name__)
 
@@ -105,13 +106,6 @@ class CoDAClassifier:
             logger.error(f"임베딩 오류: {e}")
             return None
 
-    def _clean_html(self, html: str) -> str:
-        text = re.sub(r'<script[^>]*>.*?</script>', ' ', html, flags=re.IGNORECASE | re.DOTALL)
-        text = re.sub(r'<style[^>]*>.*?</style>', ' ', text, flags=re.IGNORECASE | re.DOTALL)
-        text = re.sub(r'<[^>]+>', ' ', text)
-        text = re.sub(r'\s+', ' ', text)
-        return text.strip()[:8000]
-
     def classify(self, html: str) -> Dict:
         """
         HTML 콘텐츠를 분석하여 CoDA 범죄 카테고리 반환
@@ -138,7 +132,7 @@ class CoDAClassifier:
         if self._clf is None or self._le is None:
             return empty
 
-        text = self._clean_html(html)
+        text = HTMLCleaner.clean(html)[:8000]
         if not text:
             return empty
 

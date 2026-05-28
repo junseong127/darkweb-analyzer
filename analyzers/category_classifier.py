@@ -7,6 +7,8 @@ import logging
 import importlib
 from typing import Dict, List
 
+from utils.html_cleaner import HTMLCleaner
+
 logger = logging.getLogger(__name__)
 
 
@@ -236,7 +238,7 @@ class CategoryClassifier:
                 'reasoning': str
             }
         """
-        text = self._clean_html(html)
+        text = HTMLCleaner.clean(html).lower()
         
         if not text:
             logger.warning("분석할 텍스트가 없음")
@@ -443,26 +445,6 @@ class CategoryClassifier:
         # 모든 청크 반환 (이전의 12개 제한 제거) → 더 정확한 분석
         return chunks
     
-    def _clean_html(self, html: str) -> str:
-        """HTML 정제"""
-        if not html:
-            return ""
-        
-        text = html
-        
-        # 스크립트, 스타일 제거
-        text = re.sub(r'<script[^>]*>.*?</script>', ' ', text, flags=re.IGNORECASE | re.DOTALL)
-        text = re.sub(r'<style[^>]*>.*?</style>', ' ', text, flags=re.IGNORECASE | re.DOTALL)
-        
-        # HTML 태그 제거
-        text = re.sub(r'<[^>]+>', ' ', text)
-        
-        # 여러 공백 정리
-        text = re.sub(r'\s+', ' ', text)
-        text = text.strip()
-        
-        return text.lower()
-    
     def _detect_login_page(self, text: str) -> float:
         """
         로그인 페이지 감지
@@ -531,7 +513,7 @@ class CategoryClassifier:
         
         # 페이지 본문의 명시적 설명 텍스트에서 추론
         # (로그인 폼 근처에 있을 가능성 있음)
-        text = self._clean_html(html)
+        text = HTMLCleaner.clean(html).lower()
         
         # 페이지 초반 부분에서만 검색 (앞 2000글자)
         preview_text = text[:2000]

@@ -9,6 +9,8 @@ import re
 import json
 from typing import Dict, Optional
 
+from utils.html_cleaner import HTMLCleaner
+
 logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """당신은 다크웹 사이트 분석 전문가입니다. 제공된 웹페이지 텍스트를 분석하여 다음 항목을 JSON 형식으로 반환하세요.
@@ -57,13 +59,6 @@ class LLMAnalyzer:
             logger.error("❌ openai 패키지 미설치: pip install openai")
             return None
 
-    def _clean_html(self, html: str) -> str:
-        text = re.sub(r'<script[^>]*>.*?</script>', ' ', html, flags=re.IGNORECASE | re.DOTALL)
-        text = re.sub(r'<style[^>]*>.*?</style>', ' ', text, flags=re.IGNORECASE | re.DOTALL)
-        text = re.sub(r'<[^>]+>', ' ', text)
-        text = re.sub(r'\s+', ' ', text)
-        return text.strip()
-
     def analyze(self, html: str, domain: str = "") -> Dict:
         empty_result = {
             'success': False,
@@ -91,7 +86,7 @@ class LLMAnalyzer:
             empty_result['error'] = 'openai 패키지 미설치'
             return empty_result
 
-        text = self._clean_html(html)
+        text = HTMLCleaner.clean(html)
         if not text:
             empty_result['error'] = '분석할 텍스트 없음'
             return empty_result
